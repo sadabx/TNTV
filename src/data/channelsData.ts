@@ -1,0 +1,1322 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { Category, Channel } from "../types";
+
+export const CHANNELS_DATA: { categories: Category[] } = {
+  categories: [
+    {
+      name: "Sports",
+      channels: [
+        {
+          id: "beinsports1",
+          name: "BeinSports-1",
+          shortName: "BS1",
+          logo: "assets/logos/beinsports-1.png",
+          quality: "FHD",
+          description: "Premium live football, cricket, tennis, and global sports coverage.",
+          streams: [
+            {
+              label: "Beinsport-Arabic",
+              url: "https://edge22.776740.ir.cdn.ir/hls2/sport.m3u8",
+            },
+            {
+              label: "Beinsport-1HD",
+              url: "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "eurosport-hd",
+          name: "Eurosport HD",
+          shortName: "EURO",
+          logo: "assets/logos/eurosport-hd.png",
+          quality: "HD",
+          description: "European championship events, cycling, wintersports and athletics.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://151.80.18.177:86/Eurosport_HD/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "f1-tv",
+          name: "F1 TV",
+          shortName: "F1TV",
+          logo: "assets/logos/f1-tv.png",
+          quality: "HD",
+          description: "All Formula 1 races, qualifiers, practice sessions, and expert reviews.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://hakunamatata5.org:8088/hls/sky-f1.m3u8",
+            },
+          ],
+        },
+        {
+          id: "fifa-wc-2026",
+          name: "FIFA 26",
+          shortName: "FIFA",
+          logo: "assets/logos/fifa-wc-2026.svg",
+          quality: "FHD",
+          description: "Specialized football stream covering qualifications and live classic matches.",
+          streams: [
+            {
+              label: "Beinsport-Arabic",
+              url: "https://edge22.776740.ir.cdn.ir/hls2/sport.m3u8",
+            },
+            {
+              label: "Arabic-2",
+              url: "https://live.kooran51.cfd/yorrr1/index.m3u8",
+            },
+            {
+              label: "Beinsport-1",
+              url: "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8",
+            },
+            {
+              label: "Sport TV-1",
+              url: "https://fawatv.online/live/F2E62CEFFF6C6F88C237BD9DF4957C35/667.m3u8",
+            },
+            {
+              label: "United Sports 2",
+              url: "http://66.102.126.10:8000/play/a022/index.m3u8",
+            },
+            {
+              label: "FIFA+",
+              url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sky-sports-cricket",
+          name: "Sky Sports Cricket",
+          shortName: "SKY",
+          logo: "assets/logos/sky-sports-cricket.svg",
+          quality: "HD",
+          description: "Nonstop cricket actions, including IPL, ICC tournaments, Test matches.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/VCQ4ADX96VH4G8PY7URBWRQU/9258/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sony-sports-2",
+          name: "Sony Sports 2 HD",
+          shortName: "SS2",
+          logo: "assets/logos/sony-sports-2.png",
+          quality: "HD",
+          description: "UEFA Champions League, international cricket series, UFC events.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://main.epgmaker.com/live/y49sz6KMQs/6115263489/513.ts",
+            },
+          ],
+        },
+        {
+          id: "sony-sports-5",
+          name: "Sony Sports 5",
+          shortName: "SS5",
+          logo: "assets/logos/sony-sports-5.png",
+          quality: "HD",
+          description: "Adrenaline fueling motorsport actions, extreme sports, and local events.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://66.102.126.10:8000/play/a010/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "star-sports-1",
+          name: "Star Sports 1",
+          shortName: "SS1H",
+          logo: "assets/logos/star-sports-1.png",
+          quality: "HD",
+          description: "Premium coverage of Cricket tournaments, international sport events.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://202.70.146.135:8000/play/a01e/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "t-sports",
+          name: "T Sports",
+          shortName: "TSPT",
+          logo: "assets/logos/tsports.png",
+          quality: "HD",
+          description: "First sports channel of Bangladesh, broadcasting major live local & global leagues.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://tvsen7.aynaott.com/tsportsfhd/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "willow-sports",
+          name: "Willow Sports",
+          shortName: "WLOW",
+          logo: "assets/logos/willow-sports.svg",
+          quality: "FHD",
+          description: "Leading cricket broadcaster in the USA and Canada, streaming world-class leagues.",
+          streams: [
+            {
+              label: "link.ts",
+              url: "http://main.epgmaker.com/live/y49sz6KMQs/6115263489/517.ts",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "News",
+      channels: [
+        {
+          id: "al-jazeera",
+          name: "Al Jazeera English",
+          shortName: "AJE",
+          logo: "assets/logos/al-jazeera.png",
+          quality: "HD",
+          description: "Global news channel providing transparent headlines and documentaries.",
+          streams: [
+            {
+              label: "Official Web HLS",
+              url: "https://live-hls-web-aje.getaj.net/AJE/01.m3u8",
+            },
+          ],
+        },
+        {
+          id: "atn-news",
+          name: "ATN News",
+          shortName: "ATNN",
+          logo: "assets/logos/atn-news.png",
+          quality: "FHD",
+          description: "Leading 24/7 news channel in Bengali, bringing instant updates.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "channel-1",
+          name: "Channel 1",
+          shortName: "CH1",
+          logo: "assets/logos/channel-1.svg",
+          quality: "FHD",
+          description: "Popular talk shows, political debates, and comprehensive coverages.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "channel-24",
+          name: "Channel 24",
+          shortName: "CH24",
+          logo: "assets/logos/channel-24.png",
+          quality: "FHD",
+          description: "Interactive and digital-skewed news provider with crisp infotainment.",
+          streams: [
+            {
+              label: "1080p-2",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8",
+            },
+            {
+              label: "1080p",
+              url: "https://bozztv.com/rongo/rongo-Channel24HD/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "cna",
+          name: "Channel NewsAsia",
+          shortName: "CNA",
+          logo: "assets/logos/cna.svg",
+          quality: "HD",
+          description: "Singapore-based 24/7 Asian perspective news from CNA.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48ec97f66ebbe/index_5.m3u8",
+            },
+          ],
+        },
+        {
+          id: "dbc-news",
+          name: "DBC News",
+          shortName: "DBC",
+          logo: "assets/logos/dbc-news.png",
+          quality: "FHD",
+          description: "Deep dive political analysis, hot news flashes and local reporting.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "desh-tv",
+          name: "Desh TV",
+          shortName: "DESH",
+          logo: "assets/logos/desh-tv.png",
+          quality: "FHD",
+          description: "National pride channel celebrating democracy, literature, and news.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://bozztv.com/rongo/rongo-DeshTV/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/deshtv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "ekattor-tv",
+          name: "Ekattor TV",
+          shortName: "71TV",
+          logo: "assets/logos/ekattor-tv.png",
+          quality: "FHD",
+          description: "Pioneering news channel bringing live coverages of national affairs.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "ekhon-tv",
+          name: "Ekhon TV",
+          shortName: "EKHON",
+          logo: "assets/logos/ekhon-tv.png",
+          quality: "FHD",
+          description: "Focusing heavily on business news, economy, and general headlines.",
+          streams: [
+            {
+              label: "Youtube live",
+              url: "https://www.youtube.com/live/pW3wrbIbT7A?si=jTROGGS0y6oVMq_q",
+            },
+          ],
+        },
+        {
+          id: "independent-tv",
+          name: "Independent TV",
+          shortName: "ITV",
+          logo: "assets/logos/independent-tv.png",
+          quality: "FHD",
+          description: "Objective news summaries, business briefings, and sports updates.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "jago-news-24",
+          name: "Jago News 24",
+          shortName: "JAGO",
+          logo: "assets/logos/jago-news-24.png",
+          quality: "HD",
+          description: "Online multimedia portal feed bringing breaking stories in real-time.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://app.ncare.live/live-orgin/jagonews24.stream/playlist.m3u8",
+            },
+          ],
+        },
+        {
+          id: "jamuna-tv",
+          name: "Jamuna TV",
+          shortName: "JTV",
+          logo: "assets/logos/jamuna-tv.svg",
+          quality: "FHD",
+          description: "Highly rated news channel in Bangladesh, famous for investigative reporting.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8",
+            },
+            {
+              label: "Youtube live",
+              url: "https://www.youtube.com/live/sZQDGdHAOyQ?si=uo2VgelS1jRIn-lZ",
+            },
+          ],
+        },
+        {
+          id: "news-24",
+          name: "News 24",
+          shortName: "N24",
+          logo: "assets/logos/news-24.png",
+          quality: "FHD",
+          description: "Broadcasting non-stop global agendas and localized news segments.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1708/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sangsad-tv",
+          name: "Sangsad TV",
+          shortName: "SANG",
+          logo: "assets/logos/sangsad-tv.png",
+          quality: "HD",
+          description: "State-owned channel streaming local parliament sessions and lectures.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "somoy-tv",
+          name: "Somoy TV",
+          shortName: "SOMOY",
+          logo: "assets/logos/somoy-tv.png",
+          quality: "FHD",
+          description: "Leading news aggregator in Bangladesh with huge live audiences.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live.thebosstv.com:30443/dwlive/Somoy-TV/chunks.m3u8",
+            },
+            {
+              label: "YouTube Live",
+              url: "https://youtu.be/ITx_k7uNFP4",
+            },
+          ],
+        },
+        {
+          id: "star-news",
+          name: "Star News",
+          shortName: "STAR",
+          logo: "assets/logos/star-news.png",
+          quality: "FHD",
+          description: "International headlines, documentary segments, and current affairs.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1710/output/index.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "General & Entertainment",
+      channels: [
+        {
+          id: "ananda-tv",
+          name: "Ananda TV",
+          shortName: "AND",
+          logo: "assets/logos/ananda-tv.png",
+          quality: "FHD",
+          description: "Spreading happiness with movies, classic musicals, and family shows.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://app24.jagobd.com.bd/c3VydmVyX8RpbEU9Mi8xNy8yMFDEEHGcfRgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcEdsEfeDeKiNkVN3PTOmdFseWRtaW51aiPhnPTI2/anandatv.stream/tracks-v1a1/mono.m3u8",
+            },
+          ],
+        },
+        {
+          id: "asian-tv",
+          name: "Asian TV",
+          shortName: "ASIAN",
+          logo: "assets/logos/asian-tv.png",
+          quality: "HD",
+          description: "Bengali movies, drama serials, and celebrity talk shows.",
+          streams: [
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/asiantv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "atn-bangla",
+          name: "ATN Bangla",
+          shortName: "ATNB",
+          logo: "assets/logos/atn-bangla.svg",
+          quality: "HD",
+          description: "Legendary premier satellite channel streaming dramas and local music.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://tvsen5.aynaott.com/atnbangla/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "bangla-tv",
+          name: "Bangla TV",
+          shortName: "BNG",
+          logo: "assets/logos/bangla-tv.png",
+          quality: "HD",
+          description: "Catering to the South-Asian diaspora in EU and UK with dramas.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://tvsen6.aynaott.com/banglatv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "bangla-vision",
+          name: "Bangla Vision",
+          shortName: "BV",
+          logo: "assets/logos/bangla-vision.png",
+          quality: "FHD",
+          description: "Quality dramas, comedies, current news and religious content.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1715/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "bijoy-tv",
+          name: "Bijoy TV",
+          shortName: "BIJOY",
+          logo: "assets/logos/bijoy-tv.png",
+          quality: "HD",
+          description: "Patriotic and educational content, traditional programs and cartoons.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://main.epgmaker.com/live/y49sz6KMQs/6115263489/581.ts",
+            },
+          ],
+        },
+        {
+          id: "boishakhi-tv",
+          name: "Boishakhi TV",
+          shortName: "BOIS",
+          logo: "assets/logos/boishakhi-tv.png",
+          quality: "HD",
+          description: "Cultural heritage channel with fine arts, dramas and musicals.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://boishakhi.sonarbanglatv.com/boishakhi/boishakhitv/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/boishakhitv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "channel-9",
+          name: "Channel 9",
+          shortName: "CH9",
+          logo: "assets/logos/channel-9.png",
+          quality: "FHD",
+          description: "High quality dramas, live sports, and travel documentaries.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1729/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "channel-i",
+          name: "Channel I",
+          shortName: "CHI",
+          logo: "assets/logos/channel-i.png",
+          quality: "FHD",
+          description: "Award-winning dramas, organic farming shows and pristine serials.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "deepto-tv",
+          name: "Deepto TV",
+          shortName: "DPTO",
+          logo: "assets/logos/deepto-tv.png",
+          quality: "FHD",
+          description: "Highly engaging drama series and famous dubbed cartoons (Sultan Suleiman).",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8",
+            },
+            {
+              label: "Alt",
+              url: "https://byphdgllyk.gpcdn.net/hls/deeptotv/index.m3u8",
+            },
+            {
+              label: "Alt-2",
+              url: "https://byphdgllyk.gpcdn.net/hls/deeptotv/0_1/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "ekushey-tv",
+          name: "Ekushey TV",
+          shortName: "ETV",
+          logo: "assets/logos/ekushey-tv.png",
+          quality: "HD",
+          description: "The first private terrestrial channel bringing modern lifestyle programs.",
+          streams: [
+            {
+              label: "480p",
+              url: "https://ekusheyserver.com/etvlivesn.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/etv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "gazi-tv",
+          name: "Gazi TV (GTV)",
+          shortName: "GTV",
+          logo: "assets/logos/gazi-tv.png",
+          quality: "FHD",
+          description: "A popular entertainment and cricket broadcasting channel of Bangladesh.",
+          streams: [
+            {
+              label: "1080p",
+              url: "http://tvn1.chowdhury-shaheb.com/gazitv/index.m3u8",
+            },
+            {
+              label: "720p (AynaOTT)",
+              url: "https://tvsen5.aynaott.com/Ravc7gPCZpxk/index.m3u8",
+            },
+            {
+              label: "720p (Sonyplex)",
+              url: "https://ott.sonyplex.com:444/play/EDI0B4ME7MUUyw-g59yLM4a9ZIbC6ZQPO9Uw1syBicM/m3u8",
+            },
+          ],
+        },
+        {
+          id: "global-tv",
+          name: "Global TV",
+          shortName: "GLB",
+          logo: "assets/logos/global-tv.png",
+          quality: "HD",
+          description: "Interactive youth talk shows and digital contents.",
+          streams: [
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/globaltvhd/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "green-tv",
+          name: "Green TV",
+          shortName: "GRN",
+          logo: "assets/logos/green-tv.jpg",
+          quality: "FHD",
+          description: "Eco-friendly, agrarian and general entertainment segments.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/greentv.stream/live-orgin/greentv.stream/playlist.m3u8",
+            },
+            {
+              label: "1080p-2",
+              url: "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/greentv.stream/live-orgin/greentv.stream/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "maasranga-tv",
+          name: "Maasranga TV",
+          shortName: "MSTV",
+          logo: "assets/logos/maasranga-tv.png",
+          quality: "FHD",
+          description: "Highly colorful cultural shows, serials and fine documentaries.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "mohonatv",
+          name: "Mohona TV",
+          shortName: "MOHO",
+          logo: "assets/logos/mohonatv.png",
+          quality: "FHD",
+          description: "Social awareness programming, musical sessions, local features.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://bozztv.com/rongo/rongo-MohonaTV/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/mohonatv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "movie-bangla",
+          name: "Movie Bangla",
+          shortName: "MBNGL",
+          logo: "assets/logos/movie-bangla.jpg",
+          quality: "SD",
+          description: "Superhit blockbuster movies in Bengali streaming all day.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://alvetv.com/moviebanglatv/8080/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "moviebox",
+          name: "Moviebox",
+          shortName: "MBBX",
+          logo: "https://w7.pngwing.com/pngs/686/422/png-transparent-black-clap-board-illustration-film-festival-world-cinema-box-office-movie-miscellaneous-television-angle-thumbnail.png",
+          quality: "HD",
+          description: "Action-thriller global movies dubbed and original subtitles.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://cdn1.skygo.mn/live/disk1/Moviebox/HLS-FTA/Moviebox.m3u8",
+            },
+          ],
+        },
+        {
+          id: "my-tv",
+          name: "My TV",
+          shortName: "MYTV",
+          logo: "assets/logos/my-tv.png",
+          quality: "HD",
+          description: "Lifestyle and political debates paired with dramas.",
+          streams: [
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/mytv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "ntv",
+          name: "NTV",
+          shortName: "NTV",
+          logo: "assets/logos/ntv.svg",
+          quality: "FHD",
+          description: "Top-tier entertainment channel streaming reality series and dramas.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1716/output/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen5.aynaott.com/xV4jEKf3D9zc/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "rtv",
+          name: "RTV",
+          shortName: "RTV",
+          logo: "assets/logos/rtv.png",
+          quality: "FHD",
+          description: "Award-winning Bengali dramas and highly watched talk shows.",
+          streams: [
+            {
+              label: "1080p",
+              url: "http://116.204.149.16/rtvhd/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://bozztv.com/rongo/rongo-RTV/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sa-tv",
+          name: "SA TV",
+          shortName: "SATV",
+          logo: "assets/logos/sa-tv.png",
+          quality: "HD",
+          description: "Innovative programming focusing on youth, environment, and cinema.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1720/output/index.m3u8",
+            },
+            {
+              label: "720p",
+              url: "https://tvsen6.aynaott.com/satv/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "vokta-tv",
+          name: "Vokta TV",
+          shortName: "VKTA",
+          logo: "assets/logos/vokta-tv.png",
+          quality: "HD",
+          description: "The consumer-rights awareness and lifestyle channel of Bangladesh.",
+          streams: [
+            {
+              label: "720p",
+              url: "https://vokta.raytahost.com/live/voktatv/index.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Indian",
+      channels: [
+        {
+          id: "aakash-aath",
+          name: "Aakash Aath",
+          shortName: "AKA",
+          logo: "assets/logos/akash-aat.webp",
+          quality: "HD",
+          description: "Kolkata based legendary entertainment channel streaming cultural programs.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live.thebosstv.com:30443/dwlive/AAKAASH-AATH/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "colors-bangla-hd",
+          name: "Colors Bangla HD",
+          shortName: "COLORS",
+          logo: "assets/logos/colors-bangla-hd.png",
+          quality: "FHD",
+          description: "Top Indian-Bengali series, reality events and blockbuster dubbings.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://main.epgmaker.com/live/y49sz6KMQs/6115263489/532.ts",
+            },
+          ],
+        },
+        {
+          id: "sony-max",
+          name: "Sony Max",
+          shortName: "MAX",
+          logo: "assets/logos/sony-max.png",
+          quality: "HD",
+          description: "Home of Bollywood blockbusters and live cricket events.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/sony_max_sd_abr/live/sony_max_sd_720/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sony-sab",
+          name: "Sony SAB",
+          shortName: "SAB",
+          logo: "assets/logos/sony-sab.png",
+          quality: "HD",
+          description: "Light-hearted comedy series and family dramas (Taarak Mehta).",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/sub_hd_abr/live/sony_sub_hd_720/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "star-jalsha-hd",
+          name: "Star Jalsha HD",
+          shortName: "JALSHA",
+          logo: "assets/logos/star-jalsha-hd.png",
+          quality: "FHD",
+          description: "No. 1 Indian-Bengali entertainment channel broadcasting superhit soap operas.",
+          streams: [
+            {
+              label: "Catchup",
+              url: "https://catchup.yuppcdn.net/amazonv2/36/preview/starjalsha/master/chunklist.m3u8",
+            },
+            {
+              label: "Aynaott",
+              url: "https://tvsen3.aynaott.com/n64PH4YL/tracks-v1a1/mono.ts.m3u8",
+            },
+          ],
+        },
+        {
+          id: "zee-24-ghanta",
+          name: "Zee 24 Ghanta",
+          shortName: "ZEE24",
+          logo: "assets/logos/zee-24-ghanta.png",
+          quality: "HD",
+          description: "24-hour Bengali news channel from India, featuring dynamic debates.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://d2dsoyvkr33m05.cloudfront.net/index_1.m3u8",
+            },
+          ],
+        },
+        {
+          id: "zee-action",
+          name: "Zee Action",
+          shortName: "ZA",
+          logo: "assets/logos/zee-action.png",
+          quality: "HD",
+          description: "Action film feed with top South dubbings and Hindi action stars.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/zee_action_abr/live/zee_action_720/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "zee-bangla-hd",
+          name: "Zee Bangla HD",
+          shortName: "ZEEB",
+          logo: "assets/logos/zee-bangla-hd.png",
+          quality: "FHD",
+          description: "Extremely popular Indian-Bengali serials, comedy, and reality series.",
+          streams: [
+            {
+              label: "Ottplus",
+              url: "https://stream.ottplus.bd/live/zee_bangla_abr/live/zee_bangla_720/chunks.m3u8",
+            },
+            {
+              label: "Catchup",
+              url: "https://catchup.yuppcdn.net/amazonv2/36/preview/zeebangla/master/chunklist.m3u8",
+            },
+            {
+              label: "Epgmaker",
+              url: "http://main.epgmaker.com/live/y49sz6KMQs/6115263489/536.ts",
+            },
+          ],
+        },
+        {
+          id: "zee-cinema",
+          name: "Zee Cinema",
+          shortName: "ZC",
+          logo: "assets/logos/zee-cinema.png",
+          quality: "HD",
+          description: "A heritage movies channel broadcasting classic and contemporary Hindi films.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/zee_cinema_hd_abr/live/zee_cinema_hd_720/chunks.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Kids & Family",
+      channels: [
+        {
+          id: "cartoon-network",
+          name: "Cartoon Network",
+          shortName: "CN",
+          logo: "assets/logos/cartoon-network.png",
+          quality: "HD",
+          description: "The home of classic and modern animations including Ben 10, Tom & Jerry.",
+          streams: [
+            {
+              label: "OTT Plus",
+              url: "https://stream.ottplus.bd/live/cn_sd_abr/live/cn_sd/chunks.m3u8",
+            },
+            {
+              label: "mJunoon",
+              url: "https://vodzong.mjunoon.tv:8087/streamtest/cartoon-network-87/live/87H/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "doraemon",
+          name: "Doraemon",
+          shortName: "DORAEMON",
+          logo: "assets/logos/doraemon.png",
+          quality: "SD",
+          description: "Classic loop of full Doraemon episodes dubbed in Hindi/Bengali.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live20.bozztv.com/giatvplayout7/giatv-209902/tracks-v1a1/mono.ts.m3u8",
+            },
+          ],
+        },
+        {
+          id: "gopal-bhar",
+          name: "Gopal Bhar",
+          shortName: "GOPAL",
+          logo: "assets/logos/gopal-bhar.png",
+          quality: "SD",
+          description: "Nonstop fun and witty episodes of Gopal Bhar, the legendary royal jester.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live20.bozztv.com/giatvplayout7/giatv-209611/tracks-v1a1/mono.ts.m3u8",
+            },
+          ],
+        },
+        {
+          id: "motu-patlu",
+          name: "Motu Patlu",
+          shortName: "MOTU",
+          logo: "assets/logos/motu-patlu.png",
+          quality: "HD",
+          description: "Furfurinagar comedy adventures of Motu and Patlu.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live20.bozztv.com/giatvplayout7/giatv-209622/tracks-v1a1/mono.ts.m3u8",
+            },
+          ],
+        },
+        {
+          id: "mr-bean",
+          name: "Mr Bean",
+          shortName: "BEAN",
+          logo: "assets/logos/mr-bean.png",
+          quality: "HD",
+          description: "Pure comedy gold: classic live action and animated loops of Mr. Bean.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://amg00627-amg00627c29-rakuten-it-3989.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg00627-banijayfast-mrbeanitcc-rakutenit/cb573e196573618984c83c61cef04682ad7b3dcb0e6c886470af4a9765d9775884b7e1bfb415aa204cd717d80e0c695a4d258d13df7900d9de63b826612f4c2b859ab27ad9991309b3c8797368e62c4119e10f10d13b53309dec490cd065b429005ebe513f047fdcec0fac6b03c6d40d962c7c8eadd5373d7e5e599f093f5d916487c724993cf25ed3c50e72e77e1bb0de139d815fe3a2eb61ac32e5566ac050a0dabfa253dbd7bb5891be291c7b3d0675988b78d1be350d74ab1b58bf0b46621654eda2d3da472a8f544a53f6bda4d7df5122bceb74d21a529f089944857aec01ce58f5b119f2edd3db3381d07445d2c470809cace362f5344a50dbe883fc607598b9307046c26ce234411ebdf2d11d88cf14d9e36dd5f421256991ca05b794bc96f7f09512ca1a9c93afd82f5414325153c80debda4ade2ad677e79c43700c1d15fdcb15e28fcb5b366d57c9d10b855d4bcbbce1e6f30735df7861198207f4541f65c0386d068a0bf088396a863e4ac87511f2562098009b9c29e6accfea1631d78d91a29ecf326ebbb4e345aae9781f7f4d488eea87d4da82a6/36/1920x1080_6046040/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "oggy-and-cockroaches",
+          name: "Oggy and Cockroaches",
+          shortName: "OGGY",
+          logo: "assets/logos/oggy-and-cockroaches.png",
+          quality: "HD",
+          description: "The neverending slapstick chase of Oggy and the three pesky cockroaches.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://live20.bozztv.com/giatvplayout7/giatv-210728/tracks-v1a1/mono.ts.m3u8",
+            },
+          ],
+        },
+        {
+          id: "pbs-kids-usa",
+          name: "PBS Kids",
+          shortName: "PBSK",
+          logo: "assets/logos/pbs-kids-usa.png",
+          quality: "HD",
+          description: "Top premium educational cartoon channel of the USA for toddlers.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8",
+            },
+            {
+              label: "480p",
+              url: "https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8?DVR",
+            },
+          ],
+        },
+        {
+          id: "popkids",
+          name: "Popkids",
+          shortName: "POP",
+          logo: "assets/logos/popkids.png",
+          quality: "HD",
+          description: "High quality dubbed animations and youth sitcoms.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://amg01753-narrativeentert-popkids-lggb-xyy5k.amagi.tv/ts-eu-w1-n2/playlist/amg01753-narrativeentert-popkids-lggb/cb543d187b6c678b9ad43e6fd6ef43a2f9591fde1d6988693eb5518975d1073edce2a59caa08ff16388f1ede7f0a66413a3e951fda77118fd87eb141453c5728cfffe729a2c05616b7db083429b56a062a866a68ac39437ed0e21f48a238b6720a5aa82a66443d80b846ac7254db80148b61299bce8c37683f03409a5e5afba358b1ebe8084dd83aa4e51555972617e79f43c8821da6d2d50a9b5e8227a5429993f0dad143d380f359936790547338681dcbe0435ea837b9f7957330907d29094b1bb6e3dbc947328248544fb8d1ffff34af5d9ed265b66939ed54c30f9c66de22ea28b7f142a59abedd69482deb91083669f3b3e0c2d01d07904ab7e2e5d47879d9d1117b4cc6249801232a9ff0ce5bd59743d8e66dd5fa395d0bc197448994fdd6bce7c319ca57bfad9eaf344c4a6c1311c60cf2e80af51d9d29f880435b1f27228a955ac38adc24404147948f53d15356f9ec828ddb012cd9227c7eed73d24f0a7cc6573d2eb7cd986fb6942740333f17bae0653a8484fd686c6072f311/122/1920x1080_5903040/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "rongeen-tv",
+          name: "Rongeen TV",
+          shortName: "RNGN",
+          logo: "assets/logos/rongeen-tv.png",
+          quality: "HD",
+          description: "Full-time children entertainment and cartoon loop channel.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://server.thelegitpro.in/rongeentv/rongeentv/tracks-v1a1/mono.m3u8",
+            },
+          ],
+        },
+        {
+          id: "sony-yay",
+          name: "Sony Yay",
+          shortName: "YAY",
+          logo: "assets/logos/sony-yay.png",
+          quality: "HD",
+          description: "Leading multi-language local dub animation series.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/sony_yay_abr/live/sony_yay_720/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "srk-tv",
+          name: "SRK TV",
+          shortName: "SRK",
+          logo: "assets/logos/srk-tv.png",
+          quality: "HD",
+          description: "24/7 movies, cartoons, and musical shows channel.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Infotainment",
+      channels: [
+        {
+          id: "animal-planet",
+          name: "Animal Planet",
+          shortName: "AP",
+          logo: "assets/logos/animal-planet.png",
+          quality: "HD",
+          description: "Deep exploration of wild nature, domestic animals, and underwater life.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/animal_planet_sd_abr/live/animal_plnet_sd/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "discovery-hd",
+          name: "Discovery HD",
+          shortName: "DSCH",
+          logo: "assets/logos/discovery-hd.PNG",
+          quality: "HD",
+          description: "World famous science, space engineering, history and extreme survival channels.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/discovery_sd_abr/live/discovery_sd/chunks.m3u8",
+            },
+            {
+              label: "Backup",
+              url: "http://202.70.146.135:8000/play/a05z/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "id-hd",
+          name: "ID HD",
+          shortName: "ID",
+          logo: "assets/logos/id-hd.png",
+          quality: "HD",
+          description: "Investigation Discovery: true crime stories and cold investigations.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/id_hd_abr/live/id_hd/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "nat-geo-hd",
+          name: "Nat Geo HD",
+          shortName: "NATG",
+          logo: "assets/logos/nat-geo-hd.svg",
+          quality: "HD",
+          description: "Elite award-winning geographic, space, history and documentary broadcasts.",
+          streams: [
+            {
+              label: "Auto",
+              url: "http://202.70.146.135:8000/play/a05o/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "red-bull-tv",
+          name: "Red Bull TV",
+          shortName: "RBTV",
+          logo: "assets/logos/red-bull-tv.svg",
+          quality: "HD",
+          description: "Extreme cycling, sky diving, drift racing, and global sound fusions.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8",
+            },
+          ],
+        },
+        {
+          id: "tlc",
+          name: "TLC",
+          shortName: "TLC",
+          logo: "assets/logos/tlc.png",
+          quality: "HD",
+          description: "Global travel channels, culinary secrets, and unique lifestyles.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://stream.ottplus.bd/live/tlc_sd_abr/live/tlc_sd/chunks.m3u8",
+            },
+          ],
+        },
+        {
+          id: "travel-xp-uk",
+          name: "Travel XP UK",
+          shortName: "TRXP",
+          logo: "assets/logos/travel-xp-uk.svg",
+          quality: "HD",
+          description: "Virtual luxury tours across pristine sights in 4K/HDR formats.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8",
+            },
+          ],
+        },
+        {
+          id: "wild-earth",
+          name: "Wild Earth",
+          shortName: "WE",
+          logo: "assets/logos/wild-earth.png",
+          quality: "HD",
+          description: "Live interactive safaris straight from South Africa with experts.",
+          streams: [
+            {
+              label: "Auto",
+              url: "https://wildearth-plex.amagi.tv/masterR720P.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Religious",
+      channels: [
+        {
+          id: "al-quran-tv",
+          name: "Al Quran Al Kareem TV",
+          shortName: "MAKKA",
+          logo: "assets/logos/al-quran-tv.png",
+          quality: "HD",
+          description: "Live 24/7 stream of the Holy Kaaba in Makkah with beautiful Quran recitations.",
+          streams: [
+            {
+              label: "240p",
+              url: "https://cdn-globecast.akamaized.net/live/eds/saudi_quran/hls_roku/index.m3u8",
+            },
+            {
+              label: "Backup",
+              url: "http://m.live.net.sa:1935/live/quran/playlist.m3u8",
+            },
+          ],
+        },
+        {
+          id: "al-sunnah-tv",
+          name: "Al Sunnah Al Nabawiyah TV",
+          shortName: "MADINA",
+          logo: "assets/logos/al-sunnah-tv.png",
+          quality: "HD",
+          description: "Live 24/7 stream of the Prophet's Mosque in Madinah with Hadith collections.",
+          streams: [
+            {
+              label: "240p",
+              url: "https://cdn-globecast.akamaized.net/live/eds/saudi_sunnah/hls_roku/index.m3u8",
+            },
+            {
+              label: "Backup",
+              url: "http://m.live.net.sa:1935/live/sunnah/playlist.m3u8",
+            },
+          ],
+        },
+        {
+          id: "madani-channel",
+          name: "Madani Channel Bangla",
+          shortName: "MCB",
+          logo: "assets/logos/madani-channel.png",
+          quality: "FHD",
+          description: "Islamic lectures, holy Naat, and ethical debates in Bengali language.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/d3e49b76-ac06-4689-a641-9200445b647f/master.m3u8",
+            },
+          ],
+        },
+        {
+          id: "peace-tv-bangla",
+          name: "Peace TV Bangla",
+          shortName: "PEACE",
+          logo: "assets/logos/peace-tv-bangla.png",
+          quality: "FHD",
+          description: "Comparative religion discussions from various global Islamic scholars.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://dzkyvlfyge.erbvr.com/PeaceTvBangla/index.m3u8",
+            },
+          ],
+        },
+        {
+          id: "peace-tv-english",
+          name: "Peace TV English",
+          shortName: "PTVE",
+          logo: "assets/logos/peace-tv-english.png",
+          quality: "FHD",
+          description: "Famous speeches, Islamic research programs, and Q&A sessions in English.",
+          streams: [
+            {
+              label: "1080p",
+              url: "https://dzkyvlfyge.erbvr.com/PeaceTvEnglish/index.m3u8",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+// Flattened channels helper for quick lookups
+export const ALL_CHANNELS: Channel[] = CHANNELS_DATA.categories.reduce(
+  (acc: Channel[], category: Category) => {
+    const formatted = category.channels.map((ch) => ({
+      ...ch,
+      category: category.name,
+    }));
+    return [...acc, ...formatted];
+  },
+  []
+);

@@ -1,0 +1,6 @@
+{
+  "name": "T9 TV",
+  "description": "Modern Dark OTT Streaming Interface with Card-Based Content Shelves and Horizontal Carousels",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
