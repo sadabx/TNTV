@@ -170,22 +170,24 @@ fun TntvApp() {
             )
 
             if (activeChannel == null) {
-                HomeBrowse(
-                    categories = categories,
-                    onChannelSelected = {
-                        activeChannel = it
-                        selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
-                        guideMode = GuideMode.Category
-                        panelFocusSeed += 1
-                    },
-                    modifier = Modifier.weight(1f),
-                )
+                MainShell(modifier = Modifier.weight(1f), searchSelected = guideMode == GuideMode.Search) {
+                    HomeBrowse(
+                        categories = categories,
+                        onChannelSelected = {
+                            activeChannel = it
+                            selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
+                            guideMode = GuideMode.Category
+                            panelFocusSeed += 1
+                        },
+                    )
+                }
             } else {
-                PlayerScreen(
-                    channel = activeChannel!!,
-                    onBack = { activeChannel = null },
-                    modifier = Modifier.weight(1f),
-                )
+                MainShell(modifier = Modifier.weight(1f), searchSelected = guideMode == GuideMode.Search) {
+                    PlayerScreen(
+                        channel = activeChannel!!,
+                        onBack = { activeChannel = null },
+                    )
+                }
             }
         }
     }
@@ -451,9 +453,6 @@ private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
 @Composable
 private fun CategoryList(categories: List<ChannelCategory>, onCategory: (ChannelCategory) -> Unit) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-            BrandBlock()
-        }
         items(categories) { category ->
             GuideCategoryRow(category = category, onSelected = { onCategory(category) })
         }
@@ -463,47 +462,67 @@ private fun CategoryList(categories: List<ChannelCategory>, onCategory: (Channel
 @Composable
 private fun SearchPanel(categories: List<ChannelCategory>, onChannelSelected: (Channel) -> Unit) {
     val channels = remember(categories) { categories.flatMap { it.channels } }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SearchPill()
-        ChannelList(channels = channels, focusSeed = 0, onChannelSelected = onChannelSelected)
-    }
+    ChannelList(channels = channels, focusSeed = 0, onChannelSelected = onChannelSelected)
 }
 
 @Composable
-private fun BrandBlock() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+private fun MainShell(
+    modifier: Modifier = Modifier,
+    searchSelected: Boolean,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Bg),
     ) {
-        ChannelLogo("assets/t9.png", "T9", Modifier.size(24.dp))
-        Text("T9TV", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Black)
+        TopBar(searchSelected = searchSelected)
+        content()
     }
 }
 
 @Composable
-private fun SearchPill() {
-    var focused by remember { mutableStateOf(false) }
+private fun TopBar(searchSelected: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
-            .background(if (focused) Color.White else Color(0xFF202020))
+            .padding(start = 34.dp, top = 22.dp, end = 34.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        TopSearchPill(searchSelected = searchSelected, modifier = Modifier.width(420.dp))
+        Spacer(Modifier.weight(1f))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            ChannelLogo("assets/iptv.png", "T9", Modifier.size(34.dp))
+            Text("T9TV", color = Text, fontSize = 28.sp, fontWeight = FontWeight.Black)
+        }
+    }
+}
+
+@Composable
+private fun TopSearchPill(searchSelected: Boolean, modifier: Modifier = Modifier) {
+    var focused by remember { mutableStateOf(false) }
+    val active = focused || searchSelected
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(if (active) Color.White else Color(0xFF242424))
             .border(
-                width = if (focused) 2.dp else 1.dp,
-                color = if (focused) Accent.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.12f),
-                shape = RoundedCornerShape(26.dp),
+                width = if (active) 2.dp else 1.dp,
+                color = if (active) Accent.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
+                shape = RoundedCornerShape(28.dp),
             )
-            .padding(horizontal = 16.dp, vertical = 13.dp)
+            .padding(horizontal = 22.dp, vertical = 15.dp)
             .onFocusChanged { focused = it.isFocused }
             .focusable(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(Icons.Outlined.Search, contentDescription = null, tint = if (focused) Color.Black else Text2)
-        Text("Search channels", color = if (focused) Color.Black else Text2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Icon(Icons.Outlined.Search, contentDescription = null, tint = if (active) Color.Black else Text2)
+        Text("Search", color = if (active) Color.Black else Text2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -625,7 +644,7 @@ private fun HomeBrowse(
         modifier = modifier
             .fillMaxSize()
             .background(Bg),
-        contentPadding = PaddingValues(start = 34.dp, top = 28.dp, end = 34.dp, bottom = 56.dp),
+        contentPadding = PaddingValues(start = 34.dp, top = 12.dp, end = 34.dp, bottom = 56.dp),
         verticalArrangement = Arrangement.spacedBy(34.dp),
     ) {
         items(categories) { category ->
