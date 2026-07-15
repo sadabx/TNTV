@@ -845,7 +845,7 @@ private fun ChannelRow(
                 ChannelCard(
                     channel = channel,
                     modifier = cardModifier,
-                    upRequester = topSearchRequester,
+                    upRequester = if (isFirstRow) topSearchRequester else FocusRequester.Default,
                     onSelected = { onChannelSelected(channel) },
                 )
             }
