@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -132,6 +133,8 @@ fun TntvApp() {
     var guideMode by remember { mutableStateOf(GuideMode.Closed) }
     var selectedCategory by remember { mutableStateOf<ChannelCategory?>(null) }
     var panelFocusSeed by remember { mutableStateOf(0) }
+    val topSearchRequester = remember { FocusRequester() }
+    val firstHomeCardRequester = remember { FocusRequester() }
     val categories = channelCategories
 
     fun openCategory(category: ChannelCategory) {
@@ -170,9 +173,16 @@ fun TntvApp() {
             )
 
             if (activeChannel == null) {
-                MainShell(modifier = Modifier.weight(1f), searchSelected = guideMode == GuideMode.Search) {
+                MainShell(
+                    modifier = Modifier.weight(1f),
+                    searchSelected = guideMode == GuideMode.Search,
+                    searchFocusRequester = topSearchRequester,
+                    searchDownRequester = firstHomeCardRequester,
+                ) {
                     HomeBrowse(
                         categories = categories,
+                        firstCardRequester = firstHomeCardRequester,
+                        topSearchRequester = topSearchRequester,
                         onChannelSelected = {
                             activeChannel = it
                             selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
@@ -182,7 +192,12 @@ fun TntvApp() {
                     )
                 }
             } else {
-                MainShell(modifier = Modifier.weight(1f), searchSelected = guideMode == GuideMode.Search) {
+                MainShell(
+                    modifier = Modifier.weight(1f),
+                    searchSelected = guideMode == GuideMode.Search,
+                    searchFocusRequester = topSearchRequester,
+                    searchDownRequester = FocusRequester.Default,
+                ) {
                     PlayerScreen(
                         channel = activeChannel!!,
                         onBack = { activeChannel = null },
@@ -469,6 +484,8 @@ private fun SearchPanel(categories: List<ChannelCategory>, onChannelSelected: (C
 private fun MainShell(
     modifier: Modifier = Modifier,
     searchSelected: Boolean,
+    searchFocusRequester: FocusRequester,
+    searchDownRequester: FocusRequester,
     content: @Composable () -> Unit,
 ) {
     Column(
@@ -476,13 +493,21 @@ private fun MainShell(
             .fillMaxSize()
             .background(Bg),
     ) {
-        TopBar(searchSelected = searchSelected)
+        TopBar(
+            searchSelected = searchSelected,
+            searchFocusRequester = searchFocusRequester,
+            searchDownRequester = searchDownRequester,
+        )
         content()
     }
 }
 
 @Composable
-private fun TopBar(searchSelected: Boolean) {
+private fun TopBar(
+    searchSelected: Boolean,
+    searchFocusRequester: FocusRequester,
+    searchDownRequester: FocusRequester,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -490,7 +515,12 @@ private fun TopBar(searchSelected: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        TopSearchPill(searchSelected = searchSelected, modifier = Modifier.width(420.dp))
+        TopSearchPill(
+            searchSelected = searchSelected,
+            focusRequester = searchFocusRequester,
+            downRequester = searchDownRequester,
+            modifier = Modifier.width(420.dp),
+        )
         Spacer(Modifier.weight(1f))
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -503,11 +533,18 @@ private fun TopBar(searchSelected: Boolean) {
 }
 
 @Composable
-private fun TopSearchPill(searchSelected: Boolean, modifier: Modifier = Modifier) {
+private fun TopSearchPill(
+    searchSelected: Boolean,
+    focusRequester: FocusRequester,
+    downRequester: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     var focused by remember { mutableStateOf(false) }
     val active = focused || searchSelected
     Row(
         modifier = modifier
+            .focusRequester(focusRequester)
+            .focusProperties { down = downRequester }
             .clip(RoundedCornerShape(28.dp))
             .background(if (active) Color.White else Color(0xFF242424))
             .border(
@@ -637,6 +674,8 @@ private fun GuideChannelRow(
 @Composable
 private fun HomeBrowse(
     categories: List<ChannelCategory>,
+    firstCardRequester: FocusRequester,
+    topSearchRequester: FocusRequester,
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -647,14 +686,26 @@ private fun HomeBrowse(
         contentPadding = PaddingValues(start = 34.dp, top = 12.dp, end = 34.dp, bottom = 56.dp),
         verticalArrangement = Arrangement.spacedBy(34.dp),
     ) {
-        items(categories) { category ->
-            ChannelRow(category, onChannelSelected)
+        itemsIndexed(categories) { index, category ->
+            ChannelRow(
+                category = category,
+                isFirstRow = index == 0,
+                firstCardRequester = firstCardRequester,
+                topSearchRequester = topSearchRequester,
+                onChannelSelected = onChannelSelected,
+            )
         }
     }
 }
 
 @Composable
-private fun ChannelRow(category: ChannelCategory, onChannelSelected: (Channel) -> Unit) {
+private fun ChannelRow(
+    category: ChannelCategory,
+    isFirstRow: Boolean,
+    firstCardRequester: FocusRequester,
+    topSearchRequester: FocusRequester,
+    onChannelSelected: (Channel) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text(
             category.name,
@@ -663,23 +714,36 @@ private fun ChannelRow(category: ChannelCategory, onChannelSelected: (Channel) -
             fontWeight = FontWeight.Black,
         )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(category.channels) { channel ->
-                ChannelCard(channel = channel, onSelected = { onChannelSelected(channel) })
+            itemsIndexed(category.channels) { index, channel ->
+                val cardModifier =
+                    if (isFirstRow && index == 0) Modifier.focusRequester(firstCardRequester) else Modifier
+                ChannelCard(
+                    channel = channel,
+                    modifier = cardModifier,
+                    upRequester = topSearchRequester,
+                    onSelected = { onChannelSelected(channel) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ChannelCard(channel: Channel, onSelected: () -> Unit) {
+private fun ChannelCard(
+    channel: Channel,
+    modifier: Modifier = Modifier,
+    upRequester: FocusRequester,
+    onSelected: () -> Unit,
+) {
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (focused) 1.08f else 1f, label = "cardScale")
     val shellColor = if (focused) Color.White else Color.Transparent
     val titleColor = if (focused) Color(0xFF080808) else Text
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(250.dp)
+            .focusProperties { up = upRequester }
             .scale(scale)
             .clip(RoundedCornerShape(if (focused) 14.dp else 8.dp))
             .background(shellColor)
