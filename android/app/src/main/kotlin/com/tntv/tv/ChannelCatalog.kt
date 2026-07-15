@@ -1,5 +1,6 @@
 package com.tntv.tv
 
+// Generated from the TRIONINE TV website catalog. Keep the website as the source of truth.
 val channelCategories = listOf(
     ChannelCategory(
         name = "Sports",
@@ -38,7 +39,7 @@ val channelCategories = listOf(
             ),
             Channel(
                 id = "fifa-wc-2026",
-                name = "FIFA 26",
+                name = "FIFA World Cup 2026",
                 shortName = "FIFA",
                 category = "Sports",
                 logo = "assets/logos/fifa-wc-2026.svg",
@@ -64,9 +65,19 @@ val channelCategories = listOf(
                 name = "Sony Sports 5",
                 shortName = "SS5",
                 category = "Sports",
-                logo = "https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen5_SD_Logo_CLR.png",
+                logo = "assets/logos/sony-sports-5.png",
                 streams = listOf(
                     StreamSource(label = "Direct", url = "http://66.102.126.10:8000/play/a010/index.m3u8"),
+                ),
+            ),
+            Channel(
+                id = "sport-tv1",
+                name = "Sport TV",
+                shortName = "STV1",
+                category = "Sports",
+                logo = "assets/logos/sport-tv1.svg",
+                streams = listOf(
+                    StreamSource(label = "StreamHost", url = "https://1nyaler.streamhostingcdn.top/stream/33/index.m3u8"),
                 ),
             ),
             Channel(
@@ -96,7 +107,7 @@ val channelCategories = listOf(
                 name = "Thunder Er",
                 shortName = "THUN",
                 category = "Sports",
-                logo = "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380791303.png",
+                logo = "assets/logos/thunder-er.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/thunder/playlist.m3u8"),
                 ),
@@ -290,7 +301,7 @@ val channelCategories = listOf(
                 name = "CNN",
                 shortName = "CNN",
                 category = "International",
-                logo = "https://upload.wikimedia.org/wikipedia/commons/b/b1/CNN.svg",
+                logo = "assets/logos/cnn-us.svg",
                 streams = listOf(
                     StreamSource(label = "WarnerMedia", url = "https://turnerlive.warnermediacdn.com/hls/live/586495/cnngo/cnn_slate/VIDEO_0_3564000.m3u8"),
                 ),
@@ -300,7 +311,7 @@ val channelCategories = listOf(
                 name = "Press TV Iran",
                 shortName = "PRES",
                 category = "International",
-                logo = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Press_TV_logo.svg/1280px-Press_TV_logo.svg.png",
+                logo = "assets/logos/press-tv-iran.png",
                 streams = listOf(
                     StreamSource(label = "PressTV", url = "https://live.presstv.ir/hls/presstv_5_482/index.m3u8"),
                 ),
@@ -418,7 +429,7 @@ val channelCategories = listOf(
                 name = "Mohona TV",
                 shortName = "MOHO",
                 category = "General",
-                logo = "https://upload.wikimedia.org/wikipedia/en/thumb/9/94/Mohona_tv_Logo.svg/250px-Mohona_tv_Logo.svg.png",
+                logo = "assets/logos/mohona-tv.png",
                 streams = listOf(
                     StreamSource(label = "BozzTV", url = "https://bozztv.com/rongo/rongo-MohonaTV/index.m3u8"),
                     StreamSource(label = "AynaOTT", url = "https://tvsen6.aynaott.com/mohonatv/index.m3u8"),
@@ -429,7 +440,7 @@ val channelCategories = listOf(
                 name = "Movie Bangla",
                 shortName = "MBNGL",
                 category = "General",
-                logo = "https://moviebangla.tv/wp-content/uploads/2024/06/moviebanglatv-logo-2.png",
+                logo = "assets/logos/movie-bangla.jpg",
                 streams = listOf(
                     StreamSource(label = "AlveTV", url = "http://alvetv.com/moviebanglatv/8080/index.m3u8"),
                 ),
@@ -466,7 +477,7 @@ val channelCategories = listOf(
                 name = "Crimes",
                 shortName = "CRIM",
                 category = "Entertainment",
-                logo = "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380126540.png",
+                logo = "assets/logos/crimes.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/crimes/playlist.m3u8"),
                 ),
@@ -476,7 +487,7 @@ val channelCategories = listOf(
                 name = "Moviebox",
                 shortName = "MBBX",
                 category = "Entertainment",
-                logo = "https://w7.pngwing.com/pngs/686/422/png-transparent-black-clap-board-illustration-film-festival-world-cinema-box-office-movie-miscellaneous-television-angle-thumbnail.png",
+                logo = "assets/logos/moviebox.png",
                 streams = listOf(
                     StreamSource(label = "SkyGo", url = "https://cdn1.skygo.mn/live/disk1/Moviebox/HLS-FTA/Moviebox.m3u8"),
                 ),
@@ -486,7 +497,7 @@ val channelCategories = listOf(
                 name = "Superrix HD",
                 shortName = "SPRX",
                 category = "Entertainment",
-                logo = "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770348388925.png",
+                logo = "assets/logos/superrix-hd.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/superrix/playlist.m3u8"),
                 ),
@@ -496,7 +507,7 @@ val channelCategories = listOf(
                 name = "Uniques HD",
                 shortName = "UNIQ",
                 category = "Entertainment",
-                logo = "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770347327658.png",
+                logo = "assets/logos/uniques-hd.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/uniques/playlist.m3u8"),
                 ),
@@ -522,14 +533,14 @@ val channelCategories = listOf(
                 name = "B4U Kadak",
                 shortName = "B4U",
                 category = "Indian",
-                logo = "https://jiotvimages.cdn.jio.com/dare_images/images/channel/63ca523d57c534aae4b50f9cd4d2a80c.png",
+                logo = "assets/logos/b4u-kadak.png",
                 streams = listOf(
                     StreamSource(label = "PiShow", url = "https://cdn-2.pishow.tv/live/227/master.m3u8"),
                 ),
             ),
             Channel(
-                id = "colors-bangla-hd",
-                name = "Colors Bangla HD",
+                id = "colors-bangla",
+                name = "Colors Bangla",
                 shortName = "COLORS",
                 category = "Indian",
                 logo = "assets/logos/colors-bangla-hd.png",
@@ -538,11 +549,21 @@ val channelCategories = listOf(
                 ),
             ),
             Channel(
+                id = "colors-cineplex",
+                name = "Colors Cineplex",
+                shortName = "CINEPLEX",
+                category = "Indian",
+                logo = "assets/logos/ColorsCineplex.png",
+                streams = listOf(
+                    StreamSource(label = "Direct", url = "http://66.102.126.10:8000/play/a076/index.m3u8"),
+                ),
+            ),
+            Channel(
                 id = "hindi-movies",
                 name = "Hindi Movies",
                 shortName = "HIND",
                 category = "Indian",
-                logo = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVljpzM91S8pNCK2WqHvoPOIbH80C0BJS6QQ&s",
+                logo = "assets/logos/hindi-movies.png",
                 streams = listOf(
                     StreamSource(label = "BozzTV", url = "https://live20.bozztv.com/giatvplayout7/giatv-209612/tracks-v1a1/mono.ts.m3u8"),
                 ),
@@ -552,7 +573,7 @@ val channelCategories = listOf(
                 name = "Joo Music",
                 shortName = "JOOM",
                 category = "Indian",
-                logo = "https://images.dwncdn.net/images/t_app-icon-l/p/2465677d-f07e-4f7e-90b0-74fb1d636456/2541171815/2141_4-78144111-imgingest-1692757708225709462.png",
+                logo = "assets/logos/joo-music.png",
                 streams = listOf(
                     StreamSource(label = "live247", url = "https://livecdn.live247stream.com/joomusic/tv/playlist.m3u8"),
                 ),
@@ -562,7 +583,7 @@ val channelCategories = listOf(
                 name = "Sheemaroo Bollywood",
                 shortName = "SHEE",
                 category = "Indian",
-                logo = "https://jiotvimages.cdn.jio.com/dare_images/images/channel/2f66f13b85531977f2990c18ca414e83.png",
+                logo = "assets/logos/sheemaroo-bollywood.png",
                 streams = listOf(
                     StreamSource(label = "Amagi", url = "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00864-shemarooenterta-shemabollywood-ono/playlist.m3u8"),
                 ),
@@ -572,7 +593,7 @@ val channelCategories = listOf(
                 name = "Sony Max",
                 shortName = "MAX",
                 category = "Indian",
-                logo = "https://www.sonypicturesnetworks.com/images/logos/Sony_MAX.png",
+                logo = "assets/logos/sony-max.png",
                 streams = listOf(
                     StreamSource(label = "OTTPlus", url = "https://stream.ottplus.bd/live/sony_max_sd_abr/live/sony_max_sd_720/chunks.m3u8"),
                 ),
@@ -592,7 +613,7 @@ val channelCategories = listOf(
                 name = "Star Bharat",
                 shortName = "SB",
                 category = "Indian",
-                logo = "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Star_Bharat_Logo.png/250px-Star_Bharat_Logo.png",
+                logo = "assets/logos/star-bharat.png",
                 streams = listOf(
                     StreamSource(label = "Direct", url = "http://66.102.126.10:8000/play/a022/index.m3u8"),
                 ),
@@ -681,7 +702,7 @@ val channelCategories = listOf(
                 name = "Funny Junior",
                 shortName = "FJ",
                 category = "Kids",
-                logo = "https://cdnhost.akashbd.net/assets/uploads/channels_images/1770007686-69716217.png",
+                logo = "assets/logos/funny-junior.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/funnyjunior/playlist.m3u8"),
                 ),
@@ -721,7 +742,7 @@ val channelCategories = listOf(
                 name = "Nicklodian SONIC",
                 shortName = "SONIC",
                 category = "Kids",
-                logo = "https://upload.wikimedia.org/wikipedia/commons/8/8a/Sonic-india-channel.png",
+                logo = "assets/logos/nicklodian-sonic.png",
                 streams = listOf(
                     StreamSource(label = "BozzTV", url = "https://live20.bozztv.com/giatvplayout7/giatv-209622/index.m3u8"),
                 ),
@@ -792,7 +813,7 @@ val channelCategories = listOf(
                 name = "Tom & Jerry",
                 shortName = "T&J",
                 category = "Kids",
-                logo = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Tom_and_Jerry_logo.svg/1280px-Tom_and_Jerry_logo.svg.png",
+                logo = "assets/logos/tom-jerry.png",
                 streams = listOf(
                     StreamSource(label = "BozzTV", url = "https://live20.bozztv.com/giatvplayout7/giatv-208314/tracks-v1a1/mono.ts.m3u8"),
                     StreamSource(label = "BozzTV-2", url = "https://live20.bozztv.com/giatvplayout7/giatv-208314/playlist.m3u8"),
@@ -839,7 +860,7 @@ val channelCategories = listOf(
                 name = "Luxell",
                 shortName = "LUXE",
                 category = "Infotainment",
-                logo = "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770378560772.png",
+                logo = "assets/logos/luxel-tv.png",
                 streams = listOf(
                     StreamSource(label = "gpcdn", url = "https://nomawnoijl.gpcdn.net/akash/luxell/playlist.m3u8"),
                 ),
@@ -849,7 +870,7 @@ val channelCategories = listOf(
                 name = "Motor Vision",
                 shortName = "MOTO",
                 category = "Infotainment",
-                logo = "https://motorvision.tv/wp-content/uploads/2023/09/MV_Logo_positive_light_background-2.png",
+                logo = "assets/logos/motor-vision.png",
                 streams = listOf(
                     StreamSource(label = "OtterVision", url = "https://mvg-mv-xumo.otteravision.com/mvg/mv/mv.m3u8"),
                 ),
@@ -869,7 +890,7 @@ val channelCategories = listOf(
                 name = "REAL WILD",
                 shortName = "REAL",
                 category = "Infotainment",
-                logo = "",
+                logo = "assets/logos/wild-tv.png",
                 streams = listOf(
                     StreamSource(label = "Amagi", url = "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-realwild-tcl/playlist.m3u8"),
                 ),
@@ -948,7 +969,7 @@ val channelCategories = listOf(
                 name = "Ilm TV",
                 shortName = "ILM",
                 category = "Religious",
-                logo = "https://yt3.googleusercontent.com/cCETTs55ld8DoOwZ2i4nJI-Z25DOvLIUrdkejbSuvn7JRoWiLCkEPOteoz1ZeXWyAzZzm4OG6g=s900-c-k-c0x00ffffff-no-rj",
+                logo = "assets/logos/ilm-tv.png",
                 streams = listOf(
                     StreamSource(label = "tplay", url = "https://tplay.live/originals/ilm-tv/index.m3u8"),
                 ),
@@ -988,7 +1009,7 @@ val channelCategories = listOf(
                 name = "Quran TV",
                 shortName = "Q24",
                 category = "Religious",
-                logo = "https://qurantv.in/wp-content/uploads/2023/11/logo-quran.png",
+                logo = "assets/logos/quran-tv.png",
                 streams = listOf(
                     StreamSource(label = "Sharjah Quran", url = "https://live.kwikmotion.com/sharjahtvquranlive/shqurantv.smil/playlist.m3u8"),
                     StreamSource(label = "SMC Radio", url = "https://live.kwikmotion.com/smcquranlive/quranradiolive/playlist.m3u8"),
@@ -996,4 +1017,4 @@ val channelCategories = listOf(
             ),
         ),
     ),
-)
+);

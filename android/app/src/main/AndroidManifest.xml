@@ -12,7 +12,7 @@
         android:allowBackup="true"
         android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
-        android:label="T9TV"
+        android:label="TRIONINE TV"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity

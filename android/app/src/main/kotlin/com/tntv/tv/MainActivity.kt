@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,10 +39,14 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.outlined.ChildCare
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.automirrored.outlined.FeaturedPlayList
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.NightsStay
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -47,7 +54,6 @@ import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,45 +65,57 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
 import kotlinx.coroutines.delay
 
-private val Bg = Color(0xFF08090D)
-private val RailBg = Color(0xFF090909)
-private val PanelBg = Color(0xFF0A0B0F)
-private val Text = Color(0xFFF5F5F5)
-private val Text2 = Color(0xFFB8BBC2)
-private val Text3 = Color(0xFF8A8E96)
+private val Bg = Color(0xFF06070B)
+private val RailBg = Color(0xE6090C11)
+private val PanelBg = Color(0xF5080A0E)
+private val ExpandedMenuBg = Color(0xFF17191E)
+private val Text = Color(0xFFF7F8FB)
+private val Text2 = Color(0xB8F7F8FB)
+private val Text3 = Color(0x7AF7F8FB)
 private val Accent = Color(0xFF35D6A4)
 private val Red = Color(0xFFFF0000)
 
 private data class TvMetrics(
+    val railSlotWidth: Dp,
     val railWidth: Dp,
     val expandedGuideWidth: Dp,
     val guidePanelWidth: Dp,
@@ -119,71 +137,55 @@ private data class TvMetrics(
 
 private val LocalTvMetrics = staticCompositionLocalOf {
     TvMetrics(
-        railWidth = 72.dp,
-        expandedGuideWidth = 320.dp,
-        guidePanelWidth = 248.dp,
-        railIconSize = 48.dp,
-        railIconGlyph = 23.dp,
-        screenPadding = 34.dp,
-        topPadding = 22.dp,
-        searchWidth = 420.dp,
-        cardWidth = 250.dp,
-        rowGap = 34.dp,
-        cardGap = 16.dp,
-        logoSize = 44.dp,
-        topBrandLogo = 34.dp,
-        titleText = 30.sp,
-        cardText = 15.sp,
-        guideText = 15.sp,
-        brandText = 28.sp,
+        railSlotWidth = 37.dp,
+        railWidth = 31.dp,
+        expandedGuideWidth = 160.dp,
+        guidePanelWidth = 141.dp,
+        railIconSize = 23.dp,
+        railIconGlyph = 11.dp,
+        screenPadding = 17.dp,
+        topPadding = 17.dp,
+        searchWidth = 220.dp,
+        cardWidth = 125.dp,
+        rowGap = 17.dp,
+        cardGap = 8.dp,
+        logoSize = 22.dp,
+        topBrandLogo = 15.dp,
+        titleText = 15.sp,
+        cardText = 8.sp,
+        guideText = 8.sp,
+        brandText = 10.sp,
     )
+}
+private val LocalLogoImageLoader = staticCompositionLocalOf<ImageLoader> {
+    error("Logo image loader is not available")
 }
 
 @Composable
-private fun rememberTvMetrics(width: Dp, height: Dp): TvMetrics {
-    val compact = width < 900.dp || height < 520.dp
-    val large = width >= 1500.dp
-    return when {
-        compact -> TvMetrics(
-            railWidth = 60.dp,
-            expandedGuideWidth = 286.dp,
-            guidePanelWidth = 226.dp,
-            railIconSize = 42.dp,
-            railIconGlyph = 21.dp,
-            screenPadding = 24.dp,
-            topPadding = 16.dp,
-            searchWidth = 340.dp,
-            cardWidth = 220.dp,
-            rowGap = 26.dp,
-            cardGap = 12.dp,
-            logoSize = 40.dp,
-            topBrandLogo = 30.dp,
-            titleText = 26.sp,
-            cardText = 14.sp,
-            guideText = 14.sp,
-            brandText = 24.sp,
-        )
-        large -> TvMetrics(
-            railWidth = 88.dp,
-            expandedGuideWidth = 382.dp,
-            guidePanelWidth = 294.dp,
-            railIconSize = 56.dp,
-            railIconGlyph = 27.dp,
-            screenPadding = 48.dp,
-            topPadding = 30.dp,
-            searchWidth = 560.dp,
-            cardWidth = 320.dp,
-            rowGap = 44.dp,
-            cardGap = 22.dp,
-            logoSize = 52.dp,
-            topBrandLogo = 42.dp,
-            titleText = 36.sp,
-            cardText = 18.sp,
-            guideText = 17.sp,
-            brandText = 34.sp,
-        )
-        else -> LocalTvMetrics.current
-    }
+private fun rememberTvMetrics(width: Dp): TvMetrics {
+    // Android TV commonly exposes 1920x1080 as 960x540 dp. These ratios map
+    // the website's measured CSS geometry back to the same physical pixels.
+    val scale = (width.value / 960f).coerceIn(0.78f, 2f)
+    return TvMetrics(
+        railSlotWidth = 37.dp * scale,
+        railWidth = 31.dp * scale,
+        expandedGuideWidth = 160.dp * scale,
+        guidePanelWidth = 141.dp * scale,
+        railIconSize = 23.dp * scale,
+        railIconGlyph = 11.dp * scale,
+        screenPadding = 17.dp * scale,
+        topPadding = 17.dp * scale,
+        searchWidth = 220.dp * scale,
+        cardWidth = 125.dp * scale,
+        rowGap = 17.dp * scale,
+        cardGap = 8.dp * scale,
+        logoSize = 22.dp * scale,
+        topBrandLogo = 15.dp * scale,
+        titleText = (15f * scale).sp,
+        cardText = (8f * scale).sp,
+        guideText = (8f * scale).sp,
+        brandText = (10f * scale).sp,
+    )
 }
 
 class MainActivity : ComponentActivity() {
@@ -192,7 +194,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
-                TntvApp()
+                TrionineTvApp()
             }
         }
     }
@@ -222,12 +224,18 @@ private enum class GuideMode {
 }
 
 @Composable
-fun TntvApp() {
+fun TrionineTvApp() {
+    val context = LocalContext.current
+    val logoImageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components { add(SvgDecoder.Factory()) }
+            .build()
+    }
     var activeChannel by remember { mutableStateOf<Channel?>(null) }
     var guideMode by remember { mutableStateOf(GuideMode.Closed) }
     var selectedCategory by remember { mutableStateOf<ChannelCategory?>(null) }
-    var panelFocusSeed by remember { mutableStateOf(0) }
-    val topSearchRequester = remember { FocusRequester() }
+    var searchQuery by remember { mutableStateOf("") }
+    var panelFocusSeed by remember { mutableIntStateOf(0) }
     val firstHomeCardRequester = remember { FocusRequester() }
     val categories = channelCategories
 
@@ -237,69 +245,111 @@ fun TntvApp() {
         panelFocusSeed += 1
     }
 
+    BackHandler(enabled = guideMode != GuideMode.Closed) {
+        guideMode = when (guideMode) {
+            GuideMode.Category -> GuideMode.Categories
+            GuideMode.Categories, GuideMode.Search -> GuideMode.Closed
+            GuideMode.Closed -> GuideMode.Closed
+        }
+    }
+
     Surface(color = Bg, modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
-            val metrics = rememberTvMetrics(maxWidth, maxHeight)
-            CompositionLocalProvider(LocalTvMetrics provides metrics) {
-                Row(Modifier.fillMaxSize()) {
+            val metrics = rememberTvMetrics(maxWidth)
+            CompositionLocalProvider(LocalTvMetrics provides metrics, LocalLogoImageLoader provides logoImageLoader) {
+                val guideContentInset = when (guideMode) {
+                    GuideMode.Categories -> metrics.expandedGuideWidth
+                    GuideMode.Category -> metrics.railSlotWidth + metrics.guidePanelWidth
+                    GuideMode.Closed, GuideMode.Search -> metrics.railSlotWidth
+                }
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .drawBehind {
+                            drawRect(color = Bg)
+                            drawRect(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(Color(0x3058B7FF), Color.Transparent),
+                                    center = Offset(size.width * 0.78f, size.height * 0.06f),
+                                    radius = size.width * 0.28f,
+                                ),
+                            )
+                            drawRect(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(Color(0x1F35D6A4), Color.Transparent),
+                                    center = Offset(size.width * 0.04f, size.height * 0.42f),
+                                    radius = size.width * 0.22f,
+                                ),
+                            )
+                        },
+                ) {
+                    if (activeChannel == null) {
+                        HomeBrowse(
+                            categories = categories,
+                            firstCardRequester = firstHomeCardRequester,
+                            onChannelSelected = {
+                                activeChannel = it
+                                searchQuery = ""
+                                selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
+                                guideMode = GuideMode.Closed
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = guideContentInset),
+                        )
+                    } else {
+                        PlayerScreen(
+                            channel = activeChannel!!,
+                            onBack = {
+                                activeChannel = null
+                                guideMode = GuideMode.Closed
+                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = guideContentInset),
+                        )
+                    }
+
                     TvGuide(
                         categories = categories,
                         mode = guideMode,
                         selectedCategory = selectedCategory,
                         panelFocusSeed = panelFocusSeed,
-                        isWatching = activeChannel != null,
                         onToggleCategories = {
-                            guideMode = if (guideMode == GuideMode.Categories) GuideMode.Closed else GuideMode.Categories
-                            selectedCategory = null
+                            guideMode = if (guideMode == GuideMode.Closed) GuideMode.Categories else GuideMode.Closed
                         },
                         onHome = {
                             activeChannel = null
+                            searchQuery = ""
                             guideMode = GuideMode.Closed
                             selectedCategory = null
                         },
-                        onSearch = {
-                            selectedCategory = null
-                            guideMode = GuideMode.Search
-                        },
+                        onSearch = { guideMode = GuideMode.Search },
                         onCategory = ::openCategory,
-                        onBackToCategories = {
-                            selectedCategory = null
-                            guideMode = GuideMode.Categories
+                        onBackToCategories = { guideMode = GuideMode.Categories },
+                        onChannelSelected = {
+                            activeChannel = it
+                            searchQuery = ""
+                            selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
+                            guideMode = GuideMode.Closed
                         },
-                        onChannelSelected = { activeChannel = it },
+                        modifier = Modifier.align(Alignment.TopStart).zIndex(20f),
                     )
 
-                    if (activeChannel == null) {
-                        MainShell(
-                            modifier = Modifier.weight(1f),
-                            searchSelected = guideMode == GuideMode.Search,
-                            searchFocusRequester = topSearchRequester,
-                            searchDownRequester = firstHomeCardRequester,
-                        ) {
-                            HomeBrowse(
-                                categories = categories,
-                                firstCardRequester = firstHomeCardRequester,
-                                topSearchRequester = topSearchRequester,
-                                onChannelSelected = {
-                                    activeChannel = it
-                                    selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
-                                    guideMode = GuideMode.Category
-                                    panelFocusSeed += 1
-                                },
-                            )
-                        }
-                    } else {
-                        MainShell(
-                            modifier = Modifier.weight(1f),
-                            searchSelected = guideMode == GuideMode.Search,
-                            searchFocusRequester = topSearchRequester,
-                            searchDownRequester = FocusRequester.Default,
-                        ) {
-                            PlayerScreen(
-                                channel = activeChannel!!,
-                                onBack = { activeChannel = null },
-                            )
-                        }
+                    if (guideMode == GuideMode.Search) {
+                        SearchOverlay(
+                            categories = categories,
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onClose = { guideMode = GuideMode.Closed },
+                            onChannelSelected = {
+                                activeChannel = it
+                                searchQuery = ""
+                                selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
+                                guideMode = GuideMode.Closed
+                            },
+                            modifier = Modifier.fillMaxSize().zIndex(30f),
+                        )
                     }
                 }
             }
@@ -313,112 +363,179 @@ private fun TvGuide(
     mode: GuideMode,
     selectedCategory: ChannelCategory?,
     panelFocusSeed: Int,
-    isWatching: Boolean,
     onToggleCategories: () -> Unit,
     onHome: () -> Unit,
     onSearch: () -> Unit,
     onCategory: (ChannelCategory) -> Unit,
     onBackToCategories: () -> Unit,
     onChannelSelected: (Channel) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val expanded = mode != GuideMode.Closed
     val metrics = LocalTvMetrics.current
-    Row(
-        modifier = Modifier
-            .width(if (expanded) metrics.expandedGuideWidth else metrics.railWidth)
-            .fillMaxHeight()
-            .background(RailBg)
-            .animateContentSize(),
-    ) {
-        RailColumn(
+    when (mode) {
+        GuideMode.Categories -> ExpandedCategoryMenu(
             categories = categories,
-            mode = mode,
-            selectedCategory = selectedCategory,
-            isWatching = isWatching,
-            expanded = expanded,
-            onToggleCategories = onToggleCategories,
+            onClose = onToggleCategories,
             onHome = onHome,
             onSearch = onSearch,
             onCategory = onCategory,
+            modifier = modifier.width(metrics.expandedGuideWidth),
         )
-
-        if (expanded) {
-            GuidePanel(
+        else -> Row(modifier = modifier.width(if (mode == GuideMode.Category) metrics.railSlotWidth + metrics.guidePanelWidth else metrics.railSlotWidth)) {
+            CollapsedRail(
                 categories = categories,
                 mode = mode,
                 selectedCategory = selectedCategory,
-                onBackToCategories = onBackToCategories,
+                expanded = mode == GuideMode.Category,
+                onToggle = onToggleCategories,
+                onHome = onHome,
+                onSearch = onSearch,
                 onCategory = onCategory,
+            )
+            if (mode == GuideMode.Category && selectedCategory != null) {
+            GuidePanel(
+                selectedCategory = selectedCategory,
+                onBackToCategories = onBackToCategories,
                 onChannelSelected = onChannelSelected,
                 panelFocusSeed = panelFocusSeed,
                 modifier = Modifier
                     .width(metrics.guidePanelWidth)
                     .fillMaxHeight()
-                    .background(PanelBg),
+                    .padding(top = metrics.topPadding * 0.42f, end = metrics.cardGap * 0.62f, bottom = metrics.topPadding * 0.42f),
             )
+        }
         }
     }
 }
 
 @Composable
-private fun RailColumn(
+private fun CollapsedRail(
     categories: List<ChannelCategory>,
     mode: GuideMode,
     selectedCategory: ChannelCategory?,
-    isWatching: Boolean,
     expanded: Boolean,
-    onToggleCategories: () -> Unit,
+    onToggle: () -> Unit,
     onHome: () -> Unit,
     onSearch: () -> Unit,
     onCategory: (ChannelCategory) -> Unit,
 ) {
     val metrics = LocalTvMetrics.current
-    LazyColumn(
+    Column(
         modifier = Modifier
-            .width(metrics.railWidth)
+            .width(metrics.railSlotWidth)
             .fillMaxHeight()
-            .background(RailBg),
-        contentPadding = PaddingValues(horizontal = metrics.railWidth * 0.11f, vertical = metrics.railWidth * 0.17f),
-        verticalArrangement = Arrangement.spacedBy(metrics.railWidth * 0.17f),
+            .padding(
+                start = metrics.cardGap * 0.31f,
+                top = metrics.cardGap * 0.62f,
+                end = metrics.cardGap * 0.37f,
+                bottom = metrics.cardGap * 0.62f,
+            )
+            .clip(RoundedCornerShape(metrics.cardGap * 1.62f))
+            .border(0.5.dp, Color.White.copy(alpha = 0.11f), RoundedCornerShape(metrics.cardGap * 1.62f))
+            .background(RailBg)
+            .padding(horizontal = metrics.cardGap * 0.5f, vertical = metrics.cardGap * 0.75f),
+        verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.62f),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        item {
-            RailIcon(
-                icon = Icons.Outlined.Menu,
-                selected = expanded,
-                onSelected = onToggleCategories,
-            )
-        }
-        if (isWatching) {
-            item {
-                RailIcon(
-                    icon = Icons.Outlined.Home,
-                    selected = false,
-                    onSelected = onHome,
-                )
-            }
-        }
-        item {
-            RailIcon(
-                icon = Icons.Outlined.Search,
-                selected = mode == GuideMode.Search,
-                onSelected = onSearch,
-            )
-        }
-        items(categories) { category ->
+        RailIcon(
+            icon = if (expanded) Icons.Outlined.Close else Icons.Outlined.Menu,
+            selected = false,
+            menu = true,
+            onSelected = onToggle,
+        )
+        RailIcon(icon = Icons.Outlined.Home, selected = false, onSelected = onHome)
+        RailIcon(icon = Icons.Outlined.Search, selected = mode == GuideMode.Search, onSelected = onSearch)
+        Box(Modifier.width(metrics.railIconSize * 0.74f).height(0.5.dp).background(Color.White.copy(alpha = 0.12f)))
+        categories.forEach { category ->
             RailIcon(
                 icon = iconForCategory(category.name),
                 selected = selectedCategory?.name == category.name,
                 onSelected = { onCategory(category) },
             )
         }
-        item {
-            RailIcon(
-                icon = Icons.Outlined.Settings,
-                selected = false,
-                onSelected = {},
-            )
+        Spacer(Modifier.weight(1f))
+        Box(modifier = Modifier.height(metrics.railIconSize * 3.9f), contentAlignment = Alignment.Center) {
+            Row(modifier = Modifier.rotate(-90f), verticalAlignment = Alignment.Bottom) {
+                Text("TRIONINE", color = Text3, fontSize = metrics.guideText * 0.86f, fontWeight = FontWeight.Black)
+                Text(" TV", color = Color(0xC76181FF), fontSize = metrics.guideText * 0.58f, fontWeight = FontWeight.Black)
+            }
         }
+    }
+}
+
+@Composable
+private fun ExpandedCategoryMenu(
+    categories: List<ChannelCategory>,
+    onClose: () -> Unit,
+    onHome: () -> Unit,
+    onSearch: () -> Unit,
+    onCategory: (ChannelCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val metrics = LocalTvMetrics.current
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(start = metrics.cardGap * 0.62f, top = metrics.topPadding * 0.42f, end = metrics.cardGap * 0.62f, bottom = metrics.topPadding * 0.42f)
+            .clip(RoundedCornerShape(metrics.cardGap * 1.5f))
+            .border(0.5.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(metrics.cardGap * 1.5f))
+            .background(ExpandedMenuBg)
+            .padding(
+                start = metrics.cardGap * 0.62f,
+                top = metrics.cardGap * 0.75f,
+                end = metrics.cardGap * 0.87f,
+                bottom = metrics.cardGap * 0.87f,
+            ),
+        verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.5f),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.62f)) {
+            RailIcon(icon = Icons.Outlined.Close, selected = false, menu = true, onSelected = onClose)
+            AsyncImage(
+                model = logoModel("assets/iptv.png"),
+                imageLoader = LocalLogoImageLoader.current,
+                contentDescription = null,
+                modifier = Modifier.size(metrics.topBrandLogo),
+                contentScale = ContentScale.Fit,
+            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("TRIONINE", color = Text, fontSize = metrics.brandText, fontWeight = FontWeight.Black)
+                Text(" TV", color = Color(0xFF6181FF), fontSize = metrics.brandText * 0.68f, fontWeight = FontWeight.Black)
+            }
+        }
+        ExpandedNavRow(icon = Icons.Outlined.Home, label = "Home", onSelected = onHome)
+        ExpandedNavRow(icon = Icons.Outlined.Search, label = "Search", onSelected = onSearch)
+        categories.forEach { category ->
+            GuideCategoryRow(category = category, onSelected = { onCategory(category) })
+        }
+    }
+}
+
+@Composable
+private fun ExpandedNavRow(icon: ImageVector, label: String, onSelected: () -> Unit) {
+    val metrics = LocalTvMetrics.current
+    var focused by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(metrics.railIconSize * 1.04f)
+            .clip(RoundedCornerShape(metrics.cardGap))
+            .background(if (focused) Color.White else Color.Transparent)
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
+                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                ) {
+                    onSelected()
+                    true
+                } else false
+            }
+            .focusable()
+            .padding(horizontal = metrics.cardGap * 0.5f),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.75f),
+    ) {
+        Icon(icon, contentDescription = label, tint = if (focused) Color.Black else Text2, modifier = Modifier.size(metrics.railIconGlyph))
+        Text(label, color = if (focused) Color.Black else Text2, fontSize = metrics.guideText, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -426,31 +543,40 @@ private fun RailColumn(
 private fun RailIcon(
     icon: ImageVector,
     selected: Boolean,
+    menu: Boolean = false,
     onSelected: () -> Unit,
 ) {
     val metrics = LocalTvMetrics.current
     var focused by remember { mutableStateOf(false) }
-    val active = focused || selected
-    val bg = if (active) Color.White else Color.Transparent
-    val fg = if (active) Color(0xFF080808) else Text2
+    val bg = when {
+        focused -> Color.White
+        menu -> Accent.copy(alpha = 0.14f)
+        selected -> Accent.copy(alpha = 0.14f)
+        else -> Color.Transparent
+    }
+    val fg = when {
+        focused -> Color(0xFF080808)
+        menu -> Accent
+        selected -> Accent
+        else -> Text2
+    }
 
     Box(
         modifier = Modifier
             .size(metrics.railIconSize)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(metrics.cardGap * 1.06f))
             .background(bg)
             .border(
-                width = if (active) 2.dp else 0.dp,
-                color = if (active) Accent.copy(alpha = 0.75f) else Color.Transparent,
-                shape = RoundedCornerShape(16.dp),
+                width = if (focused) 2.dp else if (selected) 1.dp else 0.dp,
+                color = if (selected || focused) Accent.copy(alpha = if (focused) 0.75f else 0.35f) else Color.Transparent,
+                shape = RoundedCornerShape(metrics.cardGap * 1.06f),
             )
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 val keyCode = it.nativeKeyEvent.keyCode
                 val isAction = it.nativeKeyEvent.action == KeyEvent.ACTION_UP
                 if (isAction && (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        keyCode == KeyEvent.KEYCODE_ENTER ||
-                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+                        keyCode == KeyEvent.KEYCODE_ENTER)
                 ) {
                     onSelected()
                     true
@@ -467,11 +593,8 @@ private fun RailIcon(
 
 @Composable
 private fun GuidePanel(
-    categories: List<ChannelCategory>,
-    mode: GuideMode,
     selectedCategory: ChannelCategory?,
     onBackToCategories: () -> Unit,
-    onCategory: (ChannelCategory) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     panelFocusSeed: Int,
     modifier: Modifier = Modifier,
@@ -479,25 +602,20 @@ private fun GuidePanel(
     val metrics = LocalTvMetrics.current
     Column(
         modifier = modifier
-            .border(width = 1.dp, color = Color.White.copy(alpha = 0.08f))
-            .padding(horizontal = metrics.screenPadding * 0.3f, vertical = metrics.topPadding * 0.55f),
+            .clip(RoundedCornerShape(metrics.cardGap * 1.5f))
+            .border(width = 0.5.dp, color = Color.White.copy(alpha = 0.12f), RoundedCornerShape(metrics.cardGap * 1.5f))
+            .background(PanelBg)
+            .padding(horizontal = metrics.cardGap * 0.75f, vertical = metrics.cardGap * 0.75f),
         verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.75f),
     ) {
         GuideHeader(
-            title = when (mode) {
-                GuideMode.Category -> selectedCategory?.name.orEmpty()
-                GuideMode.Search -> "Search"
-                else -> "Categories"
-            },
-            showBack = mode == GuideMode.Category,
-            count = if (mode == GuideMode.Category) selectedCategory?.channels?.size else categories.sumOf { it.channels.size },
+            title = selectedCategory?.name.orEmpty(),
+            showBack = true,
+            count = selectedCategory?.channels?.size,
             onBack = onBackToCategories,
         )
-
-        when (mode) {
-            GuideMode.Search -> SearchPanel(categories, onChannelSelected)
-            GuideMode.Category -> selectedCategory?.let { ChannelList(it.channels, panelFocusSeed, onChannelSelected) }
-            else -> CategoryList(categories, onCategory)
+        selectedCategory?.let {
+            ChannelList(channels = it.channels, focusSeed = panelFocusSeed, onChannelSelected = onChannelSelected)
         }
     }
 }
@@ -513,7 +631,8 @@ private fun GuideHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 6.dp),
+            .height(metrics.railIconSize * 1.38f)
+            .padding(bottom = metrics.cardGap * 0.25f),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -534,9 +653,9 @@ private fun GuideHeader(
                 modifier = Modifier
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color(0xFF1C1F29))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                    .padding(horizontal = metrics.cardGap * 0.62f, vertical = metrics.cardGap * 0.25f),
             ) {
-                Text(count.toString(), color = Text2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(count.toString(), color = Text2, fontSize = metrics.guideText * 0.75f, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -544,11 +663,12 @@ private fun GuideHeader(
 
 @Composable
 private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
+    val metrics = LocalTvMetrics.current
     var focused by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .size(metrics.railIconSize * 0.87f)
+            .clip(RoundedCornerShape(metrics.cardGap * 0.5f))
             .background(if (focused) Color.White else Color.Transparent)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
@@ -565,7 +685,7 @@ private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
             .focusable(),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = if (focused) Color.Black else Text, modifier = Modifier.size(21.dp))
+        Icon(icon, contentDescription = null, tint = if (focused) Color.Black else Text, modifier = Modifier.size(metrics.railIconGlyph))
     }
 }
 
@@ -580,98 +700,126 @@ private fun CategoryList(categories: List<ChannelCategory>, onCategory: (Channel
 }
 
 @Composable
-private fun SearchPanel(categories: List<ChannelCategory>, onChannelSelected: (Channel) -> Unit) {
-    val channels = remember(categories) { categories.flatMap { it.channels } }
-    ChannelList(channels = channels, focusSeed = 0, onChannelSelected = onChannelSelected)
-}
-
-@Composable
-private fun MainShell(
+private fun SearchOverlay(
+    categories: List<ChannelCategory>,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClose: () -> Unit,
+    onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier,
-    searchSelected: Boolean,
-    searchFocusRequester: FocusRequester,
-    searchDownRequester: FocusRequester,
-    content: @Composable () -> Unit,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Bg),
-    ) {
-        TopBar(
-            searchSelected = searchSelected,
-            searchFocusRequester = searchFocusRequester,
-            searchDownRequester = searchDownRequester,
-        )
-        content()
-    }
-}
-
-@Composable
-private fun TopBar(
-    searchSelected: Boolean,
-    searchFocusRequester: FocusRequester,
-    searchDownRequester: FocusRequester,
 ) {
     val metrics = LocalTvMetrics.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = metrics.screenPadding,
-                top = metrics.topPadding,
-                end = metrics.screenPadding,
-                bottom = metrics.topPadding * 0.45f,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap),
+    Box(
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.68f))
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP && it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                    onClose()
+                    true
+                } else false
+            },
     ) {
-        TopSearchPill(
-            searchSelected = searchSelected,
-            focusRequester = searchFocusRequester,
-            downRequester = searchDownRequester,
-            modifier = Modifier.width(metrics.searchWidth),
-        )
-        Spacer(Modifier.weight(1f))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.55f),
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = metrics.topPadding * 4.4f)
+                .width(metrics.searchWidth)
+                .height(metrics.searchWidth * 1.32f),
+            verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.62f),
         ) {
-            ChannelLogo("assets/iptv.png", "T9", Modifier.size(metrics.topBrandLogo))
-            Text("T9TV", color = Text, fontSize = metrics.brandText, fontWeight = FontWeight.Black)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = metrics.cardGap * 0.5f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Search", modifier = Modifier.weight(1f), color = Text, fontSize = metrics.guideText * 1.2f, fontWeight = FontWeight.Black)
+                HeaderButton(icon = Icons.Outlined.Close, onSelected = onClose)
+            }
+            SearchPanel(
+                categories = categories,
+                query = query,
+                onQueryChange = onQueryChange,
+                onChannelSelected = onChannelSelected,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
 
 @Composable
-private fun TopSearchPill(
-    searchSelected: Boolean,
-    focusRequester: FocusRequester,
-    downRequester: FocusRequester,
+private fun SearchPanel(
+    categories: List<ChannelCategory>,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val metrics = LocalTvMetrics.current
-    var focused by remember { mutableStateOf(false) }
-    val active = focused || searchSelected
-    Row(
-        modifier = modifier
-            .focusRequester(focusRequester)
-            .focusProperties { down = downRequester }
-            .clip(RoundedCornerShape(28.dp))
-            .background(if (active) Color.White else Color(0xFF242424))
-            .border(
-                width = if (active) 2.dp else 1.dp,
-                color = if (active) Accent.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
-                shape = RoundedCornerShape(28.dp),
+    val inputRequester = remember { FocusRequester() }
+    val channels = remember(categories, query) {
+        val normalized = query.trim().lowercase()
+        categories
+            .flatMap { it.channels }
+            .filter { normalized.isBlank() || it.name.lowercase().contains(normalized) || it.category.lowercase().contains(normalized) }
+    }
+
+    LaunchedEffect(Unit) {
+        delay(120)
+        runCatching { inputRequester.requestFocus() }
+    }
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.62f)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(metrics.railIconSize * 1.04f)
+                .clip(RoundedCornerShape(metrics.cardGap * 0.75f))
+                .background(Color(0xF5090B0F))
+                .border(0.5.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(metrics.cardGap * 0.75f))
+                .padding(horizontal = metrics.cardGap, vertical = metrics.cardGap * 0.5f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.62f),
+        ) {
+            Icon(Icons.Outlined.Search, contentDescription = null, tint = Text2, modifier = Modifier.size(metrics.railIconGlyph))
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(inputRequester),
+                singleLine = true,
+                textStyle = TextStyle(color = Text, fontSize = metrics.guideText, fontWeight = FontWeight.SemiBold),
+                decorationBox = { field ->
+                    if (query.isBlank()) Text("Search channels", color = Text3, fontSize = metrics.guideText)
+                    field()
+                },
             )
-            .padding(horizontal = metrics.cardGap * 1.2f, vertical = metrics.topPadding * 0.65f)
-            .onFocusChanged { focused = it.isFocused }
-            .focusable(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(Icons.Outlined.Search, contentDescription = null, tint = if (active) Color.Black else Text2)
-        Text("Search", color = if (active) Color.Black else Text2, fontSize = metrics.brandText * 0.78f, fontWeight = FontWeight.Bold)
+        }
+        if (channels.isEmpty()) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(metrics.cardGap * 0.75f))
+                    .background(PanelBg),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("No matching channels", color = Text3, fontSize = metrics.guideText)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(metrics.cardGap * 0.75f))
+                    .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(metrics.cardGap * 0.75f))
+                    .background(PanelBg)
+                    .padding(metrics.cardGap * 0.62f),
+                verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.3f),
+            ) {
+                items(channels) { channel ->
+                    GuideChannelRow(channel = channel, onSelected = { onChannelSelected(channel) })
+                }
+            }
+        }
     }
 }
 
@@ -684,20 +832,20 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .height(metrics.railIconSize * 1.04f)
+            .clip(RoundedCornerShape(metrics.cardGap))
             .background(activeBg)
             .border(
                 width = if (focused) 2.dp else 0.dp,
                 color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(metrics.cardGap),
             )
-            .padding(horizontal = metrics.cardGap * 0.75f, vertical = metrics.cardGap * 0.75f)
+            .padding(horizontal = metrics.cardGap * 0.5f)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
                     (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
                 ) {
                     onSelected()
                     true
@@ -707,7 +855,7 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
             }
             .focusable(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.75f),
     ) {
         Icon(iconForCategory(category.name), contentDescription = null, tint = activeFg, modifier = Modifier.size(metrics.railIconGlyph))
         Text(category.name, modifier = Modifier.weight(1f), color = activeFg, fontSize = metrics.guideText, fontWeight = FontWeight.Bold)
@@ -717,11 +865,16 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
 }
 
 @Composable
-private fun ChannelList(channels: List<Channel>, focusSeed: Int, onChannelSelected: (Channel) -> Unit) {
+private fun ChannelList(
+    channels: List<Channel>,
+    focusSeed: Int,
+    autoFocus: Boolean = true,
+    onChannelSelected: (Channel) -> Unit,
+) {
     val metrics = LocalTvMetrics.current
     val firstRequester = remember { FocusRequester() }
-    LaunchedEffect(channels, focusSeed) {
-        if (channels.isNotEmpty()) {
+    LaunchedEffect(channels, focusSeed, autoFocus) {
+        if (autoFocus && channels.isNotEmpty()) {
             delay(180)
             runCatching { firstRequester.requestFocus() }
         }
@@ -754,12 +907,12 @@ private fun GuideChannelRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(metrics.cardGap * 0.5f))
             .background(bg)
             .border(
-                width = if (focused) 2.dp else 0.dp,
+                width = if (focused) 1.dp else 0.dp,
                 color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(metrics.cardGap * 0.5f),
             )
             .padding(horizontal = metrics.cardGap * 0.65f, vertical = metrics.cardGap * 0.65f)
             .onFocusChanged { focused = it.isFocused }
@@ -776,12 +929,12 @@ private fun GuideChannelRow(
             }
             .focusable(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.75f),
     ) {
         ChannelLogo(channel.logo, channel.shortName, Modifier.size(metrics.logoSize))
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.18f)) {
             Text(channel.name, color = fg, fontSize = metrics.guideText, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Box(Modifier.size(5.dp).clip(CircleShape).background(if (focused) Accent else Text3))
+            Box(Modifier.size(metrics.cardGap * 0.31f).clip(CircleShape).background(if (focused) Accent else Text3))
         }
     }
 }
@@ -790,7 +943,6 @@ private fun GuideChannelRow(
 private fun HomeBrowse(
     categories: List<ChannelCategory>,
     firstCardRequester: FocusRequester,
-    topSearchRequester: FocusRequester,
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -802,14 +954,17 @@ private fun HomeBrowse(
             }
         }
     }
+    LaunchedEffect(categories) {
+        delay(180)
+        runCatching { firstCardRequester.requestFocus() }
+    }
 
     LazyColumn(
         modifier = modifier
-            .fillMaxSize()
-            .background(Bg),
+            .fillMaxSize(),
         contentPadding = PaddingValues(
             start = metrics.screenPadding,
-            top = metrics.topPadding * 0.55f,
+            top = metrics.topPadding,
             end = metrics.screenPadding,
             bottom = metrics.rowGap * 1.6f,
         ),
@@ -820,7 +975,6 @@ private fun HomeBrowse(
                 category = category,
                 rowIndex = index,
                 rowFocusRequesters = rowFocusRequesters,
-                topSearchRequester = topSearchRequester,
                 onChannelSelected = onChannelSelected,
             )
         }
@@ -832,7 +986,6 @@ private fun ChannelRow(
     category: ChannelCategory,
     rowIndex: Int,
     rowFocusRequesters: List<List<FocusRequester>>,
-    topSearchRequester: FocusRequester,
     onChannelSelected: (Channel) -> Unit,
 ) {
     val metrics = LocalTvMetrics.current
@@ -841,10 +994,15 @@ private fun ChannelRow(
             category.name,
             color = Text,
             fontSize = metrics.titleText,
+            lineHeight = metrics.titleText * 1.16f,
             fontWeight = FontWeight.Black,
         )
         LazyRow(
-            contentPadding = PaddingValues(horizontal = metrics.cardGap * 0.75f),
+            contentPadding = PaddingValues(
+                start = metrics.cardGap * 0.75f,
+                end = metrics.cardGap * 0.75f,
+                bottom = metrics.cardGap * 1.75f,
+            ),
             horizontalArrangement = Arrangement.spacedBy(metrics.cardGap),
         ) {
             itemsIndexed(category.channels) { index, channel ->
@@ -852,9 +1010,7 @@ private fun ChannelRow(
                     channel = channel,
                     modifier = Modifier.focusRequester(rowFocusRequesters[rowIndex][index]),
                     onMoveUp = {
-                        if (rowIndex == 0) {
-                            topSearchRequester.requestFocus()
-                        } else {
+                        if (rowIndex > 0) {
                             val previousRow = rowFocusRequesters[rowIndex - 1]
                             previousRow[index.coerceAtMost(previousRow.lastIndex)].requestFocus()
                         }
@@ -890,7 +1046,7 @@ private fun ChannelCard(
         modifier = modifier
             .width(metrics.cardWidth)
             .scale(scale)
-            .clip(RoundedCornerShape(if (focused) 14.dp else 8.dp))
+            .clip(RoundedCornerShape(if (focused) metrics.cardGap * 0.87f else metrics.cardGap * 0.5f))
             .background(shellColor)
             .padding(if (focused) metrics.cardGap * 0.6f else 0.dp)
             .onFocusChanged { focused = it.isFocused }
@@ -921,22 +1077,21 @@ private fun ChannelCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(metrics.cardGap * 0.5f))
                 .background(Color.White)
                 .border(
-                    1.dp,
+                    0.5.dp,
                     if (focused) Color.Transparent else Color.White.copy(alpha = 0.16f),
-                    RoundedCornerShape(8.dp),
-                )
-                .padding(metrics.cardGap),
+                    RoundedCornerShape(metrics.cardGap * 0.5f),
+                ),
         ) {
             ChannelLogo(channel.logo, channel.shortName, Modifier.align(Alignment.Center).fillMaxSize())
-            LiveBadge(Modifier.align(Alignment.TopStart))
         }
         Text(
             channel.name,
             color = titleColor,
             fontSize = metrics.cardText,
+            lineHeight = metrics.cardText * 1.25f,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -945,11 +1100,15 @@ private fun ChannelCard(
 }
 
 @Composable
+@androidx.annotation.OptIn(UnstableApi::class)
 private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val player = remember(channel.id) {
+    var sourceIndex by remember(channel.id) { mutableIntStateOf(0) }
+    var isPlaying by remember(channel.id, sourceIndex) { mutableStateOf(true) }
+    val source = channel.streams[sourceIndex.coerceIn(channel.streams.indices)]
+    val player = remember(channel.id, sourceIndex) {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(channel.streams.first().url))
+            setMediaItem(MediaItem.fromUri(source.url))
             prepare()
             playWhenReady = true
         }
@@ -980,6 +1139,7 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
                 PlayerView(viewContext).apply {
                     this.player = player
                     useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -989,8 +1149,21 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
         )
         PlayerControls(
             channel = channel,
-            isPlaying = player.isPlaying,
-            onPlayPause = { if (player.isPlaying) player.pause() else player.play() },
+            sourceLabel = source.label,
+            isPlaying = isPlaying,
+            onPlayPause = {
+                if (isPlaying) player.pause() else player.play()
+                isPlaying = !isPlaying
+            },
+            onSourceChange = {
+                if (channel.streams.size > 1) sourceIndex = (sourceIndex + 1) % channel.streams.size
+            },
+            onAutoQuality = {
+                player.trackSelectionParameters = player.trackSelectionParameters
+                    .buildUpon()
+                    .clearOverridesOfType(androidx.media3.common.C.TRACK_TYPE_VIDEO)
+                    .build()
+            },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
@@ -999,17 +1172,25 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
 @Composable
 private fun PlayerControls(
     channel: Channel,
+    sourceLabel: String,
     isPlaying: Boolean,
     onPlayPause: () -> Unit,
+    onSourceChange: () -> Unit,
+    onAutoQuality: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val metrics = LocalTvMetrics.current
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.72f))
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.3f), Color.Black.copy(alpha = 0.85f)),
+                ),
+            )
+            .padding(start = metrics.cardGap * 1.25f, top = metrics.cardGap * 2.5f, end = metrics.cardGap * 1.25f, bottom = metrics.cardGap * 0.87f),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.5f),
     ) {
         PlayerControlIcon(
             icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
@@ -1019,11 +1200,11 @@ private fun PlayerControls(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color.Black.copy(alpha = 0.5f))
-                .padding(horizontal = 12.dp, vertical = 7.dp),
+                .padding(horizontal = metrics.cardGap * 0.75f, vertical = metrics.cardGap * 0.31f),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.size(6.dp).clip(CircleShape).background(Red))
-                Text("LIVE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.37f)) {
+                Box(Modifier.size(metrics.cardGap * 0.37f).clip(CircleShape).background(Red))
+                Text("LIVE", color = Color.White, fontSize = metrics.guideText * 0.75f, fontWeight = FontWeight.Bold)
             }
         }
         PlayerControlIcon(icon = Icons.AutoMirrored.Rounded.VolumeUp, onClick = {})
@@ -1031,14 +1212,52 @@ private fun PlayerControls(
         Text(
             channel.name,
             color = Color.White,
-            fontSize = 15.sp,
+            fontSize = metrics.cardText * 0.9f,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.weight(1f))
-        PlayerControlIcon(icon = Icons.Rounded.PictureInPictureAlt, onClick = {})
+        PlayerControlPill(icon = Icons.Outlined.Dns, label = sourceLabel.uppercase(), onClick = onSourceChange)
+        PlayerControlPill(icon = Icons.Outlined.Settings, label = "AUTO", onClick = onAutoQuality)
         PlayerControlIcon(icon = Icons.Rounded.Fullscreen, onClick = {})
+    }
+}
+
+@Composable
+private fun PlayerControlPill(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val metrics = LocalTvMetrics.current
+    var focused by remember { mutableStateOf(false) }
+    val bg = if (focused) Color.White else Color.Black.copy(alpha = 0.62f)
+    val fg = if (focused) Color(0xFF080808) else Color.White
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(metrics.cardGap * 1.25f))
+            .background(bg)
+            .border(if (focused) 1.dp else 0.5.dp, if (focused) Accent else Color.White.copy(alpha = 0.16f), RoundedCornerShape(metrics.cardGap * 1.25f))
+            .padding(horizontal = metrics.cardGap * 0.75f, vertical = metrics.cardGap * 0.5f)
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
+                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                ) {
+                    onClick()
+                    true
+                } else {
+                    false
+                }
+            }
+            .focusable(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.37f),
+    ) {
+        Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(metrics.railIconGlyph * 0.6f))
+        Text(label, color = fg, fontSize = metrics.guideText * 0.68f, fontWeight = FontWeight.ExtraBold, maxLines = 1)
     }
 }
 
@@ -1047,17 +1266,18 @@ private fun PlayerControlIcon(
     icon: ImageVector,
     onClick: () -> Unit,
 ) {
+    val metrics = LocalTvMetrics.current
     var focused by remember { mutableStateOf(false) }
     val bg = if (focused) Color.White else Color.Transparent
     val fg = if (focused) Color(0xFF080808) else Color.White
 
     Box(
         modifier = Modifier
-            .size(42.dp)
+            .size(metrics.railIconSize * 0.87f)
             .clip(CircleShape)
             .background(bg)
             .border(
-                if (focused) 2.dp else 0.dp,
+                if (focused) 1.dp else 0.dp,
                 if (focused) Accent else Color.Transparent,
                 CircleShape,
             )
@@ -1076,44 +1296,35 @@ private fun PlayerControlIcon(
             .focusable(),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(metrics.railIconGlyph))
     }
 }
 
 @Composable
 private fun ChannelLogo(rawLogo: String, fallback: String, modifier: Modifier = Modifier) {
+    val metrics = LocalTvMetrics.current
+    val imageLoader = LocalLogoImageLoader.current
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(metrics.cardGap * 0.5f))
             .background(Color.White),
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
             model = logoModel(rawLogo),
+            imageLoader = imageLoader,
             contentDescription = fallback,
-            modifier = Modifier.fillMaxSize().padding(4.dp),
+            modifier = Modifier.fillMaxSize().padding(metrics.cardGap * 0.5f),
             contentScale = ContentScale.Fit,
         )
         if (rawLogo.isBlank()) {
             Text(
                 fallback.take(3).uppercase(),
                 color = Color(0xFF101010),
-                fontSize = 14.sp,
+                fontSize = metrics.guideText,
                 fontWeight = FontWeight.Black,
             )
         }
-    }
-}
-
-@Composable
-private fun LiveBadge(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Red)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    ) {
-        Text("LIVE", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black)
     }
 }
 
@@ -1129,8 +1340,10 @@ private fun iconForCategory(name: String): ImageVector =
         name.contains("news", ignoreCase = true) -> Icons.AutoMirrored.Outlined.Article
         name.contains("international", ignoreCase = true) -> Icons.Outlined.Public
         name.contains("general", ignoreCase = true) -> Icons.Outlined.Tv
-        name.contains("entertainment", ignoreCase = true) -> Icons.Outlined.Movie
-        name.contains("indian", ignoreCase = true) -> Icons.Outlined.Public
+        name.contains("entertainment", ignoreCase = true) -> Icons.Outlined.GridView
+        name.contains("indian", ignoreCase = true) -> Icons.Outlined.Flag
         name.contains("kid", ignoreCase = true) -> Icons.Outlined.ChildCare
+        name.contains("infotainment", ignoreCase = true) -> Icons.AutoMirrored.Outlined.FeaturedPlayList
+        name.contains("religious", ignoreCase = true) -> Icons.Outlined.NightsStay
         else -> Icons.Outlined.GridView
     }

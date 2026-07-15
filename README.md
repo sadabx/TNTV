@@ -1,22 +1,30 @@
-# T9TV Android TV
+# TRIONINE TV for Android TV
 
-Native Android TV app for T9TV, rebuilt from the archived Flutter app state.
+Native Android TV client for the TRIONINE live-channel catalogue. The app mirrors the website's visual language and interaction model while using TV-native focus navigation and Media3 playback.
 
-The current `main` branch is Kotlin-first and uses Jetpack Compose for the TV UI plus Media3/ExoPlayer for live HLS playback. The old Flutter project state is preserved on the `flutter-archive` branch.
+## Current Stack
 
-## Tech Stack
-
-- Kotlin
+- Kotlin and Jetpack Compose
 - Android TV / Leanback launcher support
-- Jetpack Compose
-- Media3 ExoPlayer
-- Local channel logo assets from `assets/`
+- Media3 ExoPlayer with HLS support
+- Coil with SVG support for local and remote logos
+- Website catalogue and logos as the content source of truth
 
 ## Project Structure
 
-- `android/` - native Android TV app module.
-- `android/app/src/main/kotlin/com/tntv/tv/MainActivity.kt` - initial Compose TV shell, rail, channel cards, and player.
-- `assets/` - channel logos and static media.
+```text
+.
+├── README.md
+├── ANDROID_TV_DESIGN.md       # Detailed visual, focus, playback, and QA contract
+├── assets/
+│   ├── iptv.png               # TRIONINE TV brand mark
+│   └── logos/                 # Exact active website channel-logo set
+└── android/
+    ├── app/src/main/kotlin/com/tntv/tv/
+    │   ├── MainActivity.kt    # Compose shell, guide, browse rows, search, player
+    │   └── ChannelCatalog.kt  # Generated website catalogue snapshot
+    └── app/src/main/res/      # Launcher, TV banner, and Android resources
+```
 
 ## Build
 
@@ -25,7 +33,27 @@ cd android
 ./gradlew :app:assembleDebug
 ```
 
-## Notes
+The debug APK is generated at `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-- The native app scaffold currently contains a small demo catalog so the TV navigation, white focus states, and playback surface can be built and tested first.
-- The full channel catalog should be ported next from the website data source or archived Flutter data.
+## Catalogue Sync
+
+The website file `js/channel-catalog.js` is authoritative. Android must preserve category order, channel order, IDs, names, short names, logo paths, source labels, and stream URLs. The current Android snapshot contains 94 channels across 9 categories.
+
+When the website catalogue changes:
+
+1. Regenerate `ChannelCatalog.kt` from `CHANNELS_DATA`; do not maintain a second hand-edited list.
+2. Replace `assets/logos/` with the website's active logo set.
+3. Confirm every local `logo` path resolves and no unused logo remains.
+4. Build the debug APK and test focus traversal at 720p, 1080p, and 4K.
+
+From this repository root, the checked-in sync utility performs steps 1-3:
+
+```bash
+./tools/sync-from-website.sh /absolute/path/to/iptv-website
+```
+
+## Product Rule
+
+The reliable channel catalogue is the foundation. Popular matches are optional enrichment: load them asynchronously, insert them only after confirmed results, and silently omit the section on empty data, timeout, or failure.
+
+See [ANDROID_TV_DESIGN.md](ANDROID_TV_DESIGN.md) before changing layout, focus behavior, navigation, or player controls.
