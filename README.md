@@ -2,6 +2,8 @@
 
 Native Android TV client for the TRIONINE live-channel catalogue. The app mirrors the website's visual language and interaction model while using TV-native focus navigation and Media3 playback.
 
+The website version lives in [`sadabx/iptv`](https://github.com/sadabx/iptv). That repository is the source of truth for the channel catalogue, ordering, stream URLs, and logo assets used by this Android TV app.
+
 ## Current Stack
 
 - Kotlin and Jetpack Compose
@@ -35,9 +37,16 @@ cd android
 
 The debug APK is generated at `android/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Website Source
+
+- Website repository: [`sadabx/iptv`](https://github.com/sadabx/iptv)
+- Authoritative catalogue file: `js/channel-catalog.js`
+- Android generated snapshot: `android/app/src/main/kotlin/com/tntv/tv/ChannelCatalog.kt`
+- Shared logo assets: `assets/logos/`
+
 ## Catalogue Sync
 
-The website file `js/channel-catalog.js` is authoritative. Android must preserve category order, channel order, IDs, names, short names, logo paths, source labels, and stream URLs. The current Android snapshot contains 94 channels across 9 categories.
+The website file `js/channel-catalog.js` from [`sadabx/iptv`](https://github.com/sadabx/iptv) is authoritative. Android must preserve category order, channel order, IDs, names, short names, logo paths, source labels, and stream URLs. The current Android snapshot contains 94 channels across 9 categories.
 
 When the website catalogue changes:
 
@@ -49,7 +58,7 @@ When the website catalogue changes:
 From this repository root, the checked-in sync utility performs steps 1-3:
 
 ```bash
-./tools/sync-from-website.sh /absolute/path/to/iptv-website
+./tools/sync-from-website.sh /absolute/path/to/sadabx/iptv
 ```
 
 ## Product Rule
