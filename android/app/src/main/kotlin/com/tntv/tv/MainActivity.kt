@@ -29,9 +29,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -67,8 +69,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -107,6 +111,8 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 private val Bg = Color(0xFF06070B)
 private val RailBg = Color(0xE6090C11)
@@ -998,6 +1004,11 @@ private fun HomeBrowse(
     modifier: Modifier = Modifier,
 ) {
     val metrics = LocalTvMetrics.current
+    val verticalListState = rememberLazyListState()
+    val horizontalListStates = remember(categories.map { it.name }) {
+        List(categories.size) { LazyListState() }
+    }
+    val focusScope = rememberCoroutineScope()
     val rowFocusRequesters = remember(categories, firstCardRequester) {
         categories.mapIndexed { rowIndex, category ->
             category.channels.mapIndexed { columnIndex, _ ->
@@ -1010,7 +1021,52 @@ private fun HomeBrowse(
         runCatching { firstCardRequester.requestFocus() }
     }
 
+    fun moveFocusVertically(sourceRow: Int, sourceIndex: Int, direction: Int) {
+        val targetRow = sourceRow + direction
+        val targetRequesters = rowFocusRequesters.getOrNull(targetRow) ?: return
+        if (targetRequesters.isEmpty()) return
+
+        val sourceInfo = horizontalListStates[sourceRow].layoutInfo.visibleItemsInfo
+            .firstOrNull { it.index == sourceIndex }
+        val sourceCenter = sourceInfo?.let { it.offset + it.size / 2 }
+
+        focusScope.launch {
+            if (verticalListState.layoutInfo.visibleItemsInfo.none { it.index == targetRow }) {
+                verticalListState.scrollToItem(targetRow)
+                withFrameNanos { }
+                withFrameNanos { }
+            }
+
+            val targetState = horizontalListStates[targetRow]
+            var targetIndex = sourceIndex.coerceAtMost(targetRequesters.lastIndex)
+
+            if (sourceCenter != null && targetState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
+                var minDiff = Int.MAX_VALUE
+                for (item in targetState.layoutInfo.visibleItemsInfo) {
+                    val center = item.offset + item.size / 2
+                    val diff = abs(center - sourceCenter)
+                    if (diff < minDiff) {
+                        minDiff = diff
+                        targetIndex = item.index
+                    }
+                }
+            }
+
+            if (targetState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
+                targetState.scrollToItem(targetIndex)
+                withFrameNanos { }
+                withFrameNanos { }
+            }
+
+            runCatching { targetRequesters[targetIndex].requestFocus() }.onFailure {
+                withFrameNanos { }
+                runCatching { targetRequesters[targetIndex].requestFocus() }
+            }
+        }
+    }
+
     LazyColumn(
+        state = verticalListState,
         modifier = modifier
             .fillMaxSize(),
         contentPadding = PaddingValues(
@@ -1026,6 +1082,8 @@ private fun HomeBrowse(
                 category = category,
                 rowIndex = index,
                 rowFocusRequesters = rowFocusRequesters,
+                rowListState = horizontalListStates[index],
+                onMoveVertical = ::moveFocusVertically,
                 onChannelSelected = onChannelSelected,
             )
         }
@@ -1037,6 +1095,8 @@ private fun ChannelRow(
     category: ChannelCategory,
     rowIndex: Int,
     rowFocusRequesters: List<List<FocusRequester>>,
+    rowListState: LazyListState,
+    onMoveVertical: (sourceRow: Int, sourceIndex: Int, direction: Int) -> Unit,
     onChannelSelected: (Channel) -> Unit,
 ) {
     val metrics = LocalTvMetrics.current
@@ -1049,6 +1109,7 @@ private fun ChannelRow(
             fontWeight = FontWeight.Black,
         )
         LazyRow(
+            state = rowListState,
             contentPadding = PaddingValues(
                 start = metrics.cardGap * 0.75f,
                 end = metrics.cardGap * 0.75f,
@@ -1060,18 +1121,8 @@ private fun ChannelRow(
                 ChannelCard(
                     channel = channel,
                     modifier = Modifier.focusRequester(rowFocusRequesters[rowIndex][index]),
-                    onMoveUp = {
-                        if (rowIndex > 0) {
-                            val previousRow = rowFocusRequesters[rowIndex - 1]
-                            previousRow[index.coerceAtMost(previousRow.lastIndex)].requestFocus()
-                        }
-                    },
-                    onMoveDown = {
-                        val nextRow = rowFocusRequesters.getOrNull(rowIndex + 1)
-                        if (nextRow != null) {
-                            nextRow[index.coerceAtMost(nextRow.lastIndex)].requestFocus()
-                        }
-                    },
+                    onMoveUp = { onMoveVertical(rowIndex, index, -1) },
+                    onMoveDown = { onMoveVertical(rowIndex, index, 1) },
                     onSelected = { onChannelSelected(channel) },
                 )
             }
