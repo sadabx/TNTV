@@ -7,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -77,7 +76,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -103,6 +101,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -232,6 +232,13 @@ private enum class GuideMode {
     Category,
     Search,
 }
+
+private fun KeyEvent.isConfirmRelease(): Boolean =
+    action == KeyEvent.ACTION_UP &&
+        (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)
+
+private fun KeyEvent.isInitialDirectionDown(directionKeyCode: Int): Boolean =
+    action == KeyEvent.ACTION_DOWN && keyCode == directionKeyCode && repeatCount == 0
 
 @Composable
 fun TrionineTvApp() {
@@ -579,9 +586,7 @@ private fun ExpandedNavRow(icon: ImageVector, label: String, onSelected: () -> U
             .background(if (focused) Color.White else Color.Transparent)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onSelected()
                     true
                 } else false
@@ -630,11 +635,7 @@ private fun RailIcon(
             )
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                val keyCode = it.nativeKeyEvent.keyCode
-                val isAction = it.nativeKeyEvent.action == KeyEvent.ACTION_UP
-                if (isAction && (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onSelected()
                     true
                 } else {
@@ -729,10 +730,7 @@ private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
             .background(if (focused) Color.White else Color.Transparent)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onSelected()
                     true
                 } else {
@@ -750,7 +748,7 @@ private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
 private fun CategoryList(categories: List<ChannelCategory>, onCategory: (ChannelCategory) -> Unit) {
     val metrics = LocalTvMetrics.current
     LazyColumn(verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.5f)) {
-        items(categories) { category ->
+        items(categories, key = { it.name }) { category ->
             GuideCategoryRow(category = category, onSelected = { onCategory(category) })
         }
     }
@@ -872,7 +870,7 @@ private fun SearchPanel(
                     .padding(metrics.cardGap * 0.62f),
                 verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.3f),
             ) {
-                items(channels) { channel ->
+                items(channels, key = { it.id }) { channel ->
                     GuideChannelRow(channel = channel, onSelected = { onChannelSelected(channel) })
                 }
             }
@@ -900,10 +898,7 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
             .padding(horizontal = metrics.cardGap * 0.5f)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onSelected()
                     true
                 } else {
@@ -941,7 +936,7 @@ private fun ChannelList(
         verticalArrangement = Arrangement.spacedBy(metrics.cardGap * 0.6f),
         contentPadding = PaddingValues(bottom = metrics.rowGap),
     ) {
-        itemsIndexed(channels) { index, channel ->
+        itemsIndexed(channels, key = { _, channel -> channel.id }) { index, channel ->
             GuideChannelRow(
                 channel = channel,
                 modifier = if (index == 0) Modifier.focusRequester(firstRequester) else Modifier,
@@ -974,10 +969,7 @@ private fun GuideChannelRow(
             .padding(horizontal = metrics.cardGap * 0.65f, vertical = metrics.cardGap * 0.65f)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onSelected()
                     true
                 } else {
@@ -1077,7 +1069,7 @@ private fun HomeBrowse(
         ),
         verticalArrangement = Arrangement.spacedBy(metrics.rowGap),
     ) {
-        itemsIndexed(categories) { index, category ->
+        itemsIndexed(categories, key = { _, category -> category.name }) { index, category ->
             ChannelRow(
                 category = category,
                 rowIndex = index,
@@ -1117,7 +1109,7 @@ private fun ChannelRow(
             ),
             horizontalArrangement = Arrangement.spacedBy(metrics.cardGap),
         ) {
-            itemsIndexed(category.channels) { index, channel ->
+            itemsIndexed(category.channels, key = { _, channel -> channel.id }) { index, channel ->
                 ChannelCard(
                     channel = channel,
                     modifier = Modifier.focusRequester(rowFocusRequesters[rowIndex][index]),
@@ -1140,34 +1132,41 @@ private fun ChannelCard(
 ) {
     val metrics = LocalTvMetrics.current
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.08f else 1f, label = "cardScale")
     val shellColor = if (focused) Color.White else Color.Transparent
     val titleColor = if (focused) Color(0xFF080808) else Text
 
     Column(
         modifier = modifier
             .width(metrics.cardWidth)
-            .scale(scale)
             .clip(RoundedCornerShape(if (focused) metrics.cardGap * 0.87f else metrics.cardGap * 0.5f))
             .background(shellColor)
-            .padding(if (focused) metrics.cardGap * 0.6f else 0.dp)
+            .border(
+                width = if (focused) 2.dp else 0.dp,
+                color = if (focused) Accent.copy(alpha = 0.85f) else Color.Transparent,
+                shape = RoundedCornerShape(if (focused) metrics.cardGap * 0.87f else metrics.cardGap * 0.5f),
+            )
+            .padding(metrics.cardGap * 0.6f)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) return@onPreviewKeyEvent false
-
                 when (it.nativeKeyEvent.keyCode) {
-                    KeyEvent.KEYCODE_DPAD_UP -> {
+                    KeyEvent.KEYCODE_DPAD_UP -> if (it.nativeKeyEvent.isInitialDirectionDown(KeyEvent.KEYCODE_DPAD_UP)) {
                         onMoveUp()
                         true
+                    } else {
+                        it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN
                     }
-                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> if (it.nativeKeyEvent.isInitialDirectionDown(KeyEvent.KEYCODE_DPAD_DOWN)) {
                         onMoveDown()
                         true
+                    } else {
+                        it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN
                     }
                     KeyEvent.KEYCODE_DPAD_CENTER,
-                    KeyEvent.KEYCODE_ENTER -> {
+                    KeyEvent.KEYCODE_ENTER -> if (it.nativeKeyEvent.isConfirmRelease()) {
                         onSelected()
                         true
+                    } else {
+                        false
                     }
                     else -> false
                 }
@@ -1206,18 +1205,36 @@ private fun ChannelCard(
 private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var sourceIndex by remember(channel.id) { mutableIntStateOf(0) }
+    var failedSourceCount by remember(channel.id) { mutableIntStateOf(0) }
+    var playbackIssue by remember(channel.id) { mutableStateOf<String?>(null) }
     var isPlaying by remember(channel.id, sourceIndex) { mutableStateOf(true) }
     val source = channel.streams[sourceIndex.coerceIn(channel.streams.indices)]
     val player = remember(channel.id, sourceIndex) {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(source.url))
+            setMediaItem(MediaItem.fromUri(source.url.trim()))
             prepare()
             playWhenReady = true
         }
     }
 
     DisposableEffect(player) {
-        onDispose { player.release() }
+        val listener = object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                if (failedSourceCount < channel.streams.lastIndex) {
+                    failedSourceCount += 1
+                    playbackIssue = null
+                    sourceIndex = (sourceIndex + 1) % channel.streams.size
+                } else {
+                    playbackIssue = "Stream unavailable"
+                    isPlaying = false
+                }
+            }
+        }
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
     }
 
     Box(
@@ -1248,17 +1265,27 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
                     )
                 }
             },
+            update = { view ->
+                if (view.player !== player) view.player = player
+                view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                view.useController = false
+            },
         )
         PlayerControls(
             channel = channel,
             sourceLabel = source.label,
             isPlaying = isPlaying,
             onPlayPause = {
+                playbackIssue = null
                 if (isPlaying) player.pause() else player.play()
                 isPlaying = !isPlaying
             },
             onSourceChange = {
-                if (channel.streams.size > 1) sourceIndex = (sourceIndex + 1) % channel.streams.size
+                if (channel.streams.size > 1) {
+                    failedSourceCount = 0
+                    playbackIssue = null
+                    sourceIndex = (sourceIndex + 1) % channel.streams.size
+                }
             },
             onAutoQuality = {
                 player.trackSelectionParameters = player.trackSelectionParameters
@@ -1268,6 +1295,19 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
             },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        playbackIssue?.let { issue ->
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.78f))
+                    .border(1.dp, Color.White.copy(alpha = 0.14f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 18.dp, vertical = 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(issue, color = Color.White, fontSize = LocalTvMetrics.current.guideText, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
 
@@ -1344,10 +1384,7 @@ private fun PlayerControlPill(
             .padding(horizontal = metrics.cardGap * 0.75f, vertical = metrics.cardGap * 0.5f)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onClick()
                     true
                 } else {
@@ -1385,10 +1422,7 @@ private fun PlayerControlIcon(
             )
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
+                if (it.nativeKeyEvent.isConfirmRelease()) {
                     onClick()
                     true
                 } else {
