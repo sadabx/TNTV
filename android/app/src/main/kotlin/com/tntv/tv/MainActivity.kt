@@ -73,7 +73,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -84,10 +83,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -331,7 +335,7 @@ fun TrionineTvApp() {
                             activeChannel = it
                             searchQuery = ""
                             selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
-                            guideMode = GuideMode.Closed
+                            guideMode = GuideMode.Category
                         },
                         modifier = Modifier.align(Alignment.TopStart).zIndex(20f),
                     )
@@ -453,12 +457,59 @@ private fun CollapsedRail(
                 onSelected = { onCategory(category) },
             )
         }
-        Spacer(Modifier.weight(1f))
-        Box(modifier = Modifier.height(metrics.railIconSize * 3.9f), contentAlignment = Alignment.Center) {
-            Row(modifier = Modifier.rotate(-90f), verticalAlignment = Alignment.Bottom) {
-                Text("TRIONINE", color = Text3, fontSize = metrics.guideText * 0.86f, fontWeight = FontWeight.Black)
-                Text(" TV", color = Color(0xC76181FF), fontSize = metrics.guideText * 0.58f, fontWeight = FontWeight.Black)
-            }
+        VerticalRailBrand(Modifier.weight(1f).fillMaxWidth())
+    }
+}
+
+@Composable
+private fun VerticalRailBrand(modifier: Modifier = Modifier) {
+    val metrics = LocalTvMetrics.current
+    val wordmark = buildAnnotatedString {
+        append("TRIONINE ")
+        withStyle(
+            SpanStyle(
+                color = Color(0xC76181FF),
+                fontSize = metrics.guideText * 0.64f,
+                fontStyle = FontStyle.Italic,
+            ),
+        ) {
+            append("TV")
+        }
+    }
+
+    Layout(
+        content = {
+            Text(
+                text = wordmark,
+                color = Text3,
+                fontSize = metrics.guideText * 0.94f,
+                lineHeight = metrics.guideText,
+                letterSpacing = metrics.guideText * 0.16f,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                softWrap = false,
+            )
+        },
+        modifier = modifier,
+    ) { measurables, constraints ->
+        val placeable = measurables.single().measure(
+            constraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = constraints.maxHeight,
+            ),
+        )
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+        val visualWidth = placeable.height
+        val visualHeight = placeable.width
+        val visualLeft = (width - visualWidth) / 2
+        val visualTop = (height - visualHeight).coerceAtLeast(0)
+        val childX = visualLeft - (placeable.width - placeable.height) / 2
+        val childY = visualTop - (placeable.height - placeable.width) / 2
+
+        layout(width, height) {
+            placeable.placeWithLayer(childX, childY) { rotationZ = -90f }
         }
     }
 }
