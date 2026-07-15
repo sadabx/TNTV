@@ -2,6 +2,8 @@
 
 This document translates the current TRIONINE website into a native Android TV experience. Match the website's hierarchy, density, colors, cards, and player controls, but use Android TV focus semantics rather than browser hover behavior.
 
+The website version lives in [`sadabx/iptv`](https://github.com/sadabx/iptv). Its `js/channel-catalog.js` file and active logo assets are the source of truth for the Android catalogue snapshot.
+
 ## 1. Experience Principles
 
 - Channels render immediately and never wait for the popular-match service.
@@ -33,16 +35,18 @@ Use system sans/Roboto on Android TV. Titles are heavy, labels are semibold, and
 
 ## 3. Responsive TV Metrics
 
-Support 720p, 1080p, and 4K without hard-coding one screen size. The Compose implementation uses compact, default, and large metric sets.
+Support 720p, 1080p, and 4K without hard-coding one screen size. The Compose implementation maps the website's measured CSS geometry to Android TV dp using a 960 dp wide baseline, which corresponds to a common 1920x1080 TV density report. Clamp the scale between 0.78 and 2.0 so compact and 4K surfaces remain usable.
 
-- Collapsed rail: 60-88 dp depending on viewport.
-- Expanded rail plus guide: 286-382 dp.
-- Rail outer inset: 8 dp; corner radius: 28 dp.
-- Screen content inset: 24-48 dp.
-- Channel card width: 220-320 dp with a stable 16:9 image region.
-- Horizontal card gap: 12-22 dp.
-- Category row gap: 26-44 dp.
-- Minimum remote target: 42 dp; preferred rail target: 48-56 dp.
+Baseline metrics at 960 dp width:
+
+- Rail slot: 37 dp; collapsed rail: 31 dp.
+- Expanded rail plus guide: 160 dp; guide panel: 141 dp.
+- Rail icon tile: 23 dp; rail icon glyph: 11 dp.
+- Screen content inset: 17 dp.
+- Search width: 220 dp.
+- Channel card width: 125 dp with a stable 16:9 image region.
+- Horizontal card gap: 8 dp.
+- Category row gap: 17 dp.
 
 Cards and controls must not change their layout footprint when focused. Scale may reach 1.05-1.08 only when surrounding spacing prevents clipping.
 
@@ -126,7 +130,7 @@ Popular matches are a bonus section above Sports, never the app foundation.
 
 ## 10. Data and Logos
 
-- `js/channel-catalog.js` in the website repository is the only catalogue source of truth.
+- `js/channel-catalog.js` in [`sadabx/iptv`](https://github.com/sadabx/iptv) is the only catalogue source of truth.
 - Android local logo paths remain `assets/logos/<file>` and are loaded through `file:///android_asset/logos/<file>`.
 - Coil SVG support is required because the catalogue contains SVG logos.
 - Keep only logos referenced by active channels. Remote logos may be used only when no maintained local asset exists.
