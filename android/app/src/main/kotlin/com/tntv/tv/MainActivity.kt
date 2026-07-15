@@ -1,16 +1,16 @@
 package com.tntv.tv
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.outlined.ChildCare
@@ -53,6 +55,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,9 +64,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -75,11 +80,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 
 private val Bg = Color(0xFF08090D)
 private val RailBg = Color(0xFF090909)
+private val PanelBg = Color(0xFF0A0B0F)
 private val Text = Color(0xFFF5F5F5)
 private val Text2 = Color(0xFFB8BBC2)
+private val Text3 = Color(0xFF8A8E96)
 private val Accent = Color(0xFF35D6A4)
 private val Red = Color(0xFFFF0000)
 
@@ -111,83 +120,61 @@ data class ChannelCategory(
     val channels: List<Channel>,
 )
 
-private val demoCategories = listOf(
-    ChannelCategory(
-        "Sports",
-        listOf(
-            Channel(
-                "beinsports-1",
-                "BeinSports-1",
-                "BEIN",
-                "Sports",
-                "logos/beinsports-1.png",
-                listOf(StreamSource("Server 1", "https://1nyaler.streamhostingcdn.top/stream/23/index.m3u8")),
-            ),
-            Channel(
-                "eurosport-hd",
-                "Eurosport HD",
-                "EURO",
-                "Sports",
-                "logos/eurosport-hd.png",
-                listOf(StreamSource("Server 1", "http://151.80.18.177:86/Eurosport_HD/index.m3u8")),
-            ),
-        ),
-    ),
-    ChannelCategory(
-        "News",
-        listOf(
-            Channel(
-                "atn-news",
-                "ATN News",
-                "ATN",
-                "News",
-                "logos/atn-news.png",
-                listOf(StreamSource("Server 1", "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8")),
-            ),
-            Channel(
-                "channel-24",
-                "Channel 24",
-                "C24",
-                "News",
-                "logos/channel-24.png",
-                listOf(StreamSource("Server 1", "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8")),
-            ),
-            Channel(
-                "dbc-news",
-                "DBC News",
-                "DBC",
-                "News",
-                "logos/dbc-news.png",
-                listOf(StreamSource("Server 1", "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8")),
-            ),
-        ),
-    ),
-    ChannelCategory(
-        "International",
-        listOf(
-            Channel(
-                "al-jazeera-english",
-                "Al Jazeera English",
-                "AJE",
-                "International",
-                "logos/al-jazeera.png",
-                listOf(StreamSource("Server 1", "https://owrcovcrpy.gpcdn.net/bpk-tv/1721/output/index.m3u8")),
-            ),
-        ),
-    ),
-)
+private enum class GuideMode {
+    Closed,
+    Categories,
+    Category,
+    Search,
+}
 
 @Composable
 fun TntvApp() {
     var activeChannel by remember { mutableStateOf<Channel?>(null) }
+    var guideMode by remember { mutableStateOf(GuideMode.Closed) }
+    var selectedCategory by remember { mutableStateOf<ChannelCategory?>(null) }
+    val categories = channelCategories
+
+    fun openCategory(category: ChannelCategory) {
+        selectedCategory = category
+        guideMode = GuideMode.Category
+    }
 
     Surface(color = Bg, modifier = Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxSize()) {
-            LeftRail(isWatching = activeChannel != null, categories = demoCategories)
+            TvGuide(
+                categories = categories,
+                mode = guideMode,
+                selectedCategory = selectedCategory,
+                isWatching = activeChannel != null,
+                onToggleCategories = {
+                    guideMode = if (guideMode == GuideMode.Categories) GuideMode.Closed else GuideMode.Categories
+                    selectedCategory = null
+                },
+                onHome = {
+                    activeChannel = null
+                    guideMode = GuideMode.Closed
+                    selectedCategory = null
+                },
+                onSearch = {
+                    selectedCategory = null
+                    guideMode = GuideMode.Search
+                },
+                onCategory = ::openCategory,
+                onBackToCategories = {
+                    selectedCategory = null
+                    guideMode = GuideMode.Categories
+                },
+                onChannelSelected = { activeChannel = it },
+            )
+
             if (activeChannel == null) {
                 HomeBrowse(
-                    categories = demoCategories,
-                    onChannelSelected = { activeChannel = it },
+                    categories = categories,
+                    onChannelSelected = {
+                        activeChannel = it
+                        selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
+                        guideMode = GuideMode.Category
+                    },
                     modifier = Modifier.weight(1f),
                 )
             } else {
@@ -202,32 +189,126 @@ fun TntvApp() {
 }
 
 @Composable
-private fun LeftRail(isWatching: Boolean, categories: List<ChannelCategory>) {
-    Column(
+private fun TvGuide(
+    categories: List<ChannelCategory>,
+    mode: GuideMode,
+    selectedCategory: ChannelCategory?,
+    isWatching: Boolean,
+    onToggleCategories: () -> Unit,
+    onHome: () -> Unit,
+    onSearch: () -> Unit,
+    onCategory: (ChannelCategory) -> Unit,
+    onBackToCategories: () -> Unit,
+    onChannelSelected: (Channel) -> Unit,
+) {
+    val expanded = mode != GuideMode.Closed
+    Row(
         modifier = Modifier
-            .width(72.dp)
+            .width(if (expanded) 320.dp else 72.dp)
             .fillMaxHeight()
             .background(RailBg)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .animateContentSize(),
     ) {
-        RailIcon(Icons.Outlined.Menu)
-        if (isWatching) RailIcon(Icons.Outlined.Home)
-        RailIcon(Icons.Outlined.Search)
-        categories.forEach { category ->
-            RailIcon(iconForCategory(category.name))
+        RailColumn(
+            categories = categories,
+            mode = mode,
+            selectedCategory = selectedCategory,
+            isWatching = isWatching,
+            expanded = expanded,
+            onToggleCategories = onToggleCategories,
+            onHome = onHome,
+            onSearch = onSearch,
+            onCategory = onCategory,
+        )
+
+        if (expanded) {
+            GuidePanel(
+                categories = categories,
+                mode = mode,
+                selectedCategory = selectedCategory,
+                onBackToCategories = onBackToCategories,
+                onCategory = onCategory,
+                onChannelSelected = onChannelSelected,
+                modifier = Modifier
+                    .width(248.dp)
+                    .fillMaxHeight()
+                    .background(PanelBg),
+            )
         }
-        Spacer(Modifier.weight(1f))
-        RailIcon(Icons.Outlined.Settings)
     }
 }
 
 @Composable
-private fun RailIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private fun RailColumn(
+    categories: List<ChannelCategory>,
+    mode: GuideMode,
+    selectedCategory: ChannelCategory?,
+    isWatching: Boolean,
+    expanded: Boolean,
+    onToggleCategories: () -> Unit,
+    onHome: () -> Unit,
+    onSearch: () -> Unit,
+    onCategory: (ChannelCategory) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .width(72.dp)
+            .fillMaxHeight()
+            .background(RailBg),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        item {
+            RailIcon(
+                icon = Icons.Outlined.Menu,
+                selected = expanded,
+                onSelected = onToggleCategories,
+            )
+        }
+        if (isWatching) {
+            item {
+                RailIcon(
+                    icon = Icons.Outlined.Home,
+                    selected = false,
+                    onSelected = onHome,
+                )
+            }
+        }
+        item {
+            RailIcon(
+                icon = Icons.Outlined.Search,
+                selected = mode == GuideMode.Search,
+                onSelected = onSearch,
+            )
+        }
+        items(categories) { category ->
+            RailIcon(
+                icon = iconForCategory(category.name),
+                selected = selectedCategory?.name == category.name,
+                onSelected = { onCategory(category) },
+            )
+        }
+        item {
+            RailIcon(
+                icon = Icons.Outlined.Settings,
+                selected = false,
+                onSelected = {},
+            )
+        }
+    }
+}
+
+@Composable
+private fun RailIcon(
+    icon: ImageVector,
+    selected: Boolean,
+    onSelected: () -> Unit,
+) {
     var focused by remember { mutableStateOf(false) }
-    val bg = if (focused) Color.White else Color.Transparent
-    val fg = if (focused) Color(0xFF080808) else Text2
+    val active = focused || selected
+    val bg = if (active) Color.White else Color.Transparent
+    val fg = if (active) Color(0xFF080808) else Text2
 
     Box(
         modifier = Modifier
@@ -235,15 +316,300 @@ private fun RailIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
             .clip(RoundedCornerShape(16.dp))
             .background(bg)
             .border(
-                width = if (focused) 2.dp else 0.dp,
-                color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
+                width = if (active) 2.dp else 0.dp,
+                color = if (active) Accent.copy(alpha = 0.75f) else Color.Transparent,
                 shape = RoundedCornerShape(16.dp),
             )
+            .clickable { onSelected() }
             .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                val keyCode = it.nativeKeyEvent.keyCode
+                val isAction = it.nativeKeyEvent.action == KeyEvent.ACTION_UP
+                if (isAction && (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        keyCode == KeyEvent.KEYCODE_ENTER ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+                ) {
+                    onSelected()
+                    true
+                } else {
+                    false
+                }
+            }
             .focusable(),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(23.dp))
+    }
+}
+
+@Composable
+private fun GuidePanel(
+    categories: List<ChannelCategory>,
+    mode: GuideMode,
+    selectedCategory: ChannelCategory?,
+    onBackToCategories: () -> Unit,
+    onCategory: (ChannelCategory) -> Unit,
+    onChannelSelected: (Channel) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .border(width = 1.dp, color = Color.White.copy(alpha = 0.08f))
+            .padding(horizontal = 10.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        GuideHeader(
+            title = when (mode) {
+                GuideMode.Category -> selectedCategory?.name.orEmpty()
+                GuideMode.Search -> "Search"
+                else -> "Categories"
+            },
+            showBack = mode == GuideMode.Category,
+            count = if (mode == GuideMode.Category) selectedCategory?.channels?.size else categories.sumOf { it.channels.size },
+            onBack = onBackToCategories,
+        )
+
+        when (mode) {
+            GuideMode.Search -> SearchPanel(categories, onChannelSelected)
+            GuideMode.Category -> selectedCategory?.let { ChannelList(it.channels, onChannelSelected) }
+            else -> CategoryList(categories, onCategory)
+        }
+    }
+}
+
+@Composable
+private fun GuideHeader(
+    title: String,
+    showBack: Boolean,
+    count: Int?,
+    onBack: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (showBack) {
+            HeaderButton(icon = Icons.AutoMirrored.Outlined.ArrowBack, onSelected = onBack)
+        }
+        Text(
+            title,
+            modifier = Modifier.weight(1f),
+            color = Text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (count != null) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF1C1F29))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            ) {
+                Text(count.toString(), color = Text2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (focused) Color.White else Color.Transparent)
+            .clickable { onSelected() }
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
+                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                ) {
+                    onSelected()
+                    true
+                } else {
+                    false
+                }
+            }
+            .focusable(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = if (focused) Color.Black else Text, modifier = Modifier.size(21.dp))
+    }
+}
+
+@Composable
+private fun CategoryList(categories: List<ChannelCategory>, onCategory: (ChannelCategory) -> Unit) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        item {
+            BrandBlock()
+        }
+        items(categories) { category ->
+            GuideCategoryRow(category = category, onSelected = { onCategory(category) })
+        }
+    }
+}
+
+@Composable
+private fun SearchPanel(categories: List<ChannelCategory>, onChannelSelected: (Channel) -> Unit) {
+    val channels = remember(categories) { categories.flatMap { it.channels } }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SearchPill()
+        ChannelList(channels = channels, onChannelSelected = onChannelSelected)
+    }
+}
+
+@Composable
+private fun BrandBlock() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ChannelLogo("assets/t9.png", "T9", Modifier.size(24.dp))
+        Text("T9TV", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Black)
+    }
+}
+
+@Composable
+private fun SearchPill() {
+    var focused by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp))
+            .background(if (focused) Color.White else Color(0xFF202020))
+            .border(
+                width = if (focused) 2.dp else 1.dp,
+                color = if (focused) Accent.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(26.dp),
+            )
+            .padding(horizontal = 16.dp, vertical = 13.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .focusable(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(Icons.Outlined.Search, contentDescription = null, tint = if (focused) Color.Black else Text2)
+        Text("Search channels", color = if (focused) Color.Black else Text2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val activeBg = if (focused) Color.White else Color.Transparent
+    val activeFg = if (focused) Color(0xFF080808) else Text2
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(activeBg)
+            .border(
+                width = if (focused) 2.dp else 0.dp,
+                color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
+                shape = RoundedCornerShape(18.dp),
+            )
+            .clickable { onSelected() }
+            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
+                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER ||
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+                ) {
+                    onSelected()
+                    true
+                } else {
+                    false
+                }
+            }
+            .focusable(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(iconForCategory(category.name), contentDescription = null, tint = activeFg, modifier = Modifier.size(22.dp))
+        Text(category.name, modifier = Modifier.weight(1f), color = activeFg, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(category.channels.size.toString(), color = activeFg.copy(alpha = 0.72f), fontSize = 12.sp)
+        Text("›", color = activeFg, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun ChannelList(channels: List<Channel>, onChannelSelected: (Channel) -> Unit) {
+    val firstRequester = remember { FocusRequester() }
+    LaunchedEffect(channels) {
+        if (channels.isNotEmpty()) {
+            delay(80)
+            runCatching { firstRequester.requestFocus() }
+        }
+    }
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
+    ) {
+        itemsIndexed(channels) { index, channel ->
+            GuideChannelRow(
+                channel = channel,
+                modifier = if (index == 0) Modifier.focusRequester(firstRequester) else Modifier,
+                onSelected = { onChannelSelected(channel) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun GuideChannelRow(
+    channel: Channel,
+    modifier: Modifier = Modifier,
+    onSelected: () -> Unit,
+) {
+    var focused by remember { mutableStateOf(false) }
+    val bg = if (focused) Color.White else Color.Transparent
+    val fg = if (focused) Color(0xFF080808) else Text2
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(bg)
+            .border(
+                width = if (focused) 2.dp else 0.dp,
+                color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .clickable { onSelected() }
+            .padding(horizontal = 10.dp, vertical = 10.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .onPreviewKeyEvent {
+                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
+                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                ) {
+                    onSelected()
+                    true
+                } else {
+                    false
+                }
+            }
+            .focusable(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ChannelLogo(channel.logo, channel.shortName, Modifier.size(44.dp))
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(channel.name, color = fg, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Box(Modifier.size(5.dp).clip(CircleShape).background(if (focused) Accent else Text3))
+        }
     }
 }
 
@@ -296,6 +662,7 @@ private fun ChannelCard(channel: Channel, onSelected: () -> Unit) {
             .scale(scale)
             .clip(RoundedCornerShape(if (focused) 14.dp else 8.dp))
             .background(shellColor)
+            .clickable { onSelected() }
             .padding(if (focused) 10.dp else 0.dp)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
@@ -325,7 +692,7 @@ private fun ChannelCard(channel: Channel, onSelected: () -> Unit) {
                 )
                 .padding(18.dp),
         ) {
-            AssetLogo(channel.logo, channel.shortName, Modifier.align(Alignment.Center))
+            ChannelLogo(channel.logo, channel.shortName, Modifier.align(Alignment.Center).fillMaxSize())
             LiveBadge(Modifier.align(Alignment.TopStart))
         }
         Text(
@@ -439,7 +806,7 @@ private fun PlayerControls(
 
 @Composable
 private fun PlayerControlIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -456,6 +823,7 @@ private fun PlayerControlIcon(
                 if (focused) Accent else Color.Transparent,
                 CircleShape,
             )
+            .clickable { onClick() }
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
@@ -476,29 +844,27 @@ private fun PlayerControlIcon(
 }
 
 @Composable
-private fun AssetLogo(assetPath: String, fallback: String, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val bitmap = remember(assetPath) {
-        runCatching {
-            context.assets.open(assetPath).use { BitmapFactory.decodeStream(it) }
-        }.getOrNull()
-    }
-
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
+private fun ChannelLogo(rawLogo: String, fallback: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White),
+        contentAlignment = Alignment.Center,
+    ) {
+        AsyncImage(
+            model = logoModel(rawLogo),
             contentDescription = fallback,
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(4.dp),
             contentScale = ContentScale.Fit,
         )
-    } else {
-        Text(
-            fallback.take(3).uppercase(),
-            modifier = modifier,
-            color = Color(0xFF101010),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Black,
-        )
+        if (rawLogo.isBlank()) {
+            Text(
+                fallback.take(3).uppercase(),
+                color = Color(0xFF101010),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+            )
+        }
     }
 }
 
@@ -514,13 +880,20 @@ private fun LiveBadge(modifier: Modifier = Modifier) {
     }
 }
 
-private fun iconForCategory(name: String) =
+private fun logoModel(rawLogo: String): String {
+    val logo = rawLogo.trim()
+    if (logo.startsWith("http://") || logo.startsWith("https://")) return logo
+    return "file:///android_asset/${logo.removePrefix("assets/")}"
+}
+
+private fun iconForCategory(name: String): ImageVector =
     when {
         name.contains("sport", ignoreCase = true) -> Icons.Outlined.SportsSoccer
         name.contains("news", ignoreCase = true) -> Icons.AutoMirrored.Outlined.Article
         name.contains("international", ignoreCase = true) -> Icons.Outlined.Public
         name.contains("general", ignoreCase = true) -> Icons.Outlined.Tv
         name.contains("entertainment", ignoreCase = true) -> Icons.Outlined.Movie
+        name.contains("indian", ignoreCase = true) -> Icons.Outlined.Public
         name.contains("kid", ignoreCase = true) -> Icons.Outlined.ChildCare
         else -> Icons.Outlined.GridView
     }
