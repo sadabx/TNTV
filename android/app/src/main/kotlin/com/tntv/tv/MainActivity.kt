@@ -835,7 +835,10 @@ private fun ChannelRow(
             fontSize = metrics.titleText,
             fontWeight = FontWeight.Black,
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(metrics.cardGap)) {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = metrics.cardGap * 0.75f),
+            horizontalArrangement = Arrangement.spacedBy(metrics.cardGap),
+        ) {
             itemsIndexed(category.channels) { index, channel ->
                 val cardModifier =
                     if (isFirstRow && index == 0) Modifier.focusRequester(firstCardRequester) else Modifier
