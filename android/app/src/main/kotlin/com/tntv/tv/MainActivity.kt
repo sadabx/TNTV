@@ -795,6 +795,14 @@ private fun HomeBrowse(
     modifier: Modifier = Modifier,
 ) {
     val metrics = LocalTvMetrics.current
+    val rowFocusRequesters = remember(categories, firstCardRequester) {
+        categories.mapIndexed { rowIndex, category ->
+            category.channels.mapIndexed { columnIndex, _ ->
+                if (rowIndex == 0 && columnIndex == 0) firstCardRequester else FocusRequester()
+            }
+        }
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -810,8 +818,8 @@ private fun HomeBrowse(
         itemsIndexed(categories) { index, category ->
             ChannelRow(
                 category = category,
-                isFirstRow = index == 0,
-                firstCardRequester = firstCardRequester,
+                rowIndex = index,
+                rowFocusRequesters = rowFocusRequesters,
                 topSearchRequester = topSearchRequester,
                 onChannelSelected = onChannelSelected,
             )
@@ -822,8 +830,8 @@ private fun HomeBrowse(
 @Composable
 private fun ChannelRow(
     category: ChannelCategory,
-    isFirstRow: Boolean,
-    firstCardRequester: FocusRequester,
+    rowIndex: Int,
+    rowFocusRequesters: List<List<FocusRequester>>,
     topSearchRequester: FocusRequester,
     onChannelSelected: (Channel) -> Unit,
 ) {
@@ -840,12 +848,23 @@ private fun ChannelRow(
             horizontalArrangement = Arrangement.spacedBy(metrics.cardGap),
         ) {
             itemsIndexed(category.channels) { index, channel ->
-                val cardModifier =
-                    if (isFirstRow && index == 0) Modifier.focusRequester(firstCardRequester) else Modifier
                 ChannelCard(
                     channel = channel,
-                    modifier = cardModifier,
-                    upRequester = if (isFirstRow) topSearchRequester else FocusRequester.Default,
+                    modifier = Modifier.focusRequester(rowFocusRequesters[rowIndex][index]),
+                    onMoveUp = {
+                        if (rowIndex == 0) {
+                            topSearchRequester.requestFocus()
+                        } else {
+                            val previousRow = rowFocusRequesters[rowIndex - 1]
+                            previousRow[index.coerceAtMost(previousRow.lastIndex)].requestFocus()
+                        }
+                    },
+                    onMoveDown = {
+                        val nextRow = rowFocusRequesters.getOrNull(rowIndex + 1)
+                        if (nextRow != null) {
+                            nextRow[index.coerceAtMost(nextRow.lastIndex)].requestFocus()
+                        }
+                    },
                     onSelected = { onChannelSelected(channel) },
                 )
             }
@@ -857,7 +876,8 @@ private fun ChannelRow(
 private fun ChannelCard(
     channel: Channel,
     modifier: Modifier = Modifier,
-    upRequester: FocusRequester,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
     onSelected: () -> Unit,
 ) {
     val metrics = LocalTvMetrics.current
@@ -869,21 +889,29 @@ private fun ChannelCard(
     Column(
         modifier = modifier
             .width(metrics.cardWidth)
-            .focusProperties { up = upRequester }
             .scale(scale)
             .clip(RoundedCornerShape(if (focused) 14.dp else 8.dp))
             .background(shellColor)
             .padding(if (focused) metrics.cardGap * 0.6f else 0.dp)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
-                if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
-                    (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                        it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
-                ) {
-                    onSelected()
-                    true
-                } else {
-                    false
+                if (it.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) return@onPreviewKeyEvent false
+
+                when (it.nativeKeyEvent.keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        onMoveUp()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        onMoveDown()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_CENTER,
+                    KeyEvent.KEYCODE_ENTER -> {
+                        onSelected()
+                        true
+                    }
+                    else -> false
                 }
             }
             .focusable(),
