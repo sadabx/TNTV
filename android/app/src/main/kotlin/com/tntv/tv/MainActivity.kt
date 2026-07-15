@@ -10,7 +10,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -132,11 +131,13 @@ fun TntvApp() {
     var activeChannel by remember { mutableStateOf<Channel?>(null) }
     var guideMode by remember { mutableStateOf(GuideMode.Closed) }
     var selectedCategory by remember { mutableStateOf<ChannelCategory?>(null) }
+    var panelFocusSeed by remember { mutableStateOf(0) }
     val categories = channelCategories
 
     fun openCategory(category: ChannelCategory) {
         selectedCategory = category
         guideMode = GuideMode.Category
+        panelFocusSeed += 1
     }
 
     Surface(color = Bg, modifier = Modifier.fillMaxSize()) {
@@ -145,6 +146,7 @@ fun TntvApp() {
                 categories = categories,
                 mode = guideMode,
                 selectedCategory = selectedCategory,
+                panelFocusSeed = panelFocusSeed,
                 isWatching = activeChannel != null,
                 onToggleCategories = {
                     guideMode = if (guideMode == GuideMode.Categories) GuideMode.Closed else GuideMode.Categories
@@ -174,6 +176,7 @@ fun TntvApp() {
                         activeChannel = it
                         selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
                         guideMode = GuideMode.Category
+                        panelFocusSeed += 1
                     },
                     modifier = Modifier.weight(1f),
                 )
@@ -193,6 +196,7 @@ private fun TvGuide(
     categories: List<ChannelCategory>,
     mode: GuideMode,
     selectedCategory: ChannelCategory?,
+    panelFocusSeed: Int,
     isWatching: Boolean,
     onToggleCategories: () -> Unit,
     onHome: () -> Unit,
@@ -229,6 +233,7 @@ private fun TvGuide(
                 onBackToCategories = onBackToCategories,
                 onCategory = onCategory,
                 onChannelSelected = onChannelSelected,
+                panelFocusSeed = panelFocusSeed,
                 modifier = Modifier
                     .width(248.dp)
                     .fillMaxHeight()
@@ -320,7 +325,6 @@ private fun RailIcon(
                 color = if (active) Accent.copy(alpha = 0.75f) else Color.Transparent,
                 shape = RoundedCornerShape(16.dp),
             )
-            .clickable { onSelected() }
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 val keyCode = it.nativeKeyEvent.keyCode
@@ -350,6 +354,7 @@ private fun GuidePanel(
     onBackToCategories: () -> Unit,
     onCategory: (ChannelCategory) -> Unit,
     onChannelSelected: (Channel) -> Unit,
+    panelFocusSeed: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -371,7 +376,7 @@ private fun GuidePanel(
 
         when (mode) {
             GuideMode.Search -> SearchPanel(categories, onChannelSelected)
-            GuideMode.Category -> selectedCategory?.let { ChannelList(it.channels, onChannelSelected) }
+            GuideMode.Category -> selectedCategory?.let { ChannelList(it.channels, panelFocusSeed, onChannelSelected) }
             else -> CategoryList(categories, onCategory)
         }
     }
@@ -424,7 +429,6 @@ private fun HeaderButton(icon: ImageVector, onSelected: () -> Unit) {
             .size(36.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(if (focused) Color.White else Color.Transparent)
-            .clickable { onSelected() }
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
@@ -461,7 +465,7 @@ private fun SearchPanel(categories: List<ChannelCategory>, onChannelSelected: (C
     val channels = remember(categories) { categories.flatMap { it.channels } }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SearchPill()
-        ChannelList(channels = channels, onChannelSelected = onChannelSelected)
+        ChannelList(channels = channels, focusSeed = 0, onChannelSelected = onChannelSelected)
     }
 }
 
@@ -518,7 +522,6 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
                 color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
                 shape = RoundedCornerShape(18.dp),
             )
-            .clickable { onSelected() }
             .padding(horizontal = 12.dp, vertical = 12.dp)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
@@ -545,11 +548,11 @@ private fun GuideCategoryRow(category: ChannelCategory, onSelected: () -> Unit) 
 }
 
 @Composable
-private fun ChannelList(channels: List<Channel>, onChannelSelected: (Channel) -> Unit) {
+private fun ChannelList(channels: List<Channel>, focusSeed: Int, onChannelSelected: (Channel) -> Unit) {
     val firstRequester = remember { FocusRequester() }
-    LaunchedEffect(channels) {
+    LaunchedEffect(channels, focusSeed) {
         if (channels.isNotEmpty()) {
-            delay(80)
+            delay(180)
             runCatching { firstRequester.requestFocus() }
         }
     }
@@ -587,7 +590,6 @@ private fun GuideChannelRow(
                 color = if (focused) Accent.copy(alpha = 0.75f) else Color.Transparent,
                 shape = RoundedCornerShape(8.dp),
             )
-            .clickable { onSelected() }
             .padding(horizontal = 10.dp, vertical = 10.dp)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
@@ -662,7 +664,6 @@ private fun ChannelCard(channel: Channel, onSelected: () -> Unit) {
             .scale(scale)
             .clip(RoundedCornerShape(if (focused) 14.dp else 8.dp))
             .background(shellColor)
-            .clickable { onSelected() }
             .padding(if (focused) 10.dp else 0.dp)
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
@@ -823,7 +824,6 @@ private fun PlayerControlIcon(
                 if (focused) Accent else Color.Transparent,
                 CircleShape,
             )
-            .clickable { onClick() }
             .onFocusChanged { focused = it.isFocused }
             .onPreviewKeyEvent {
                 if (it.nativeKeyEvent.action == KeyEvent.ACTION_UP &&
