@@ -54,6 +54,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
@@ -65,12 +66,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,10 +95,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
@@ -114,90 +112,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private val Bg = Color(0xFF06070B)
-private val RailBg = Color(0xE6090C11)
-private val PanelBg = Color(0xF5080A0E)
-private val ExpandedMenuBg = Color(0xFF17191E)
-private val Text = Color(0xFFF7F8FB)
-private val Text2 = Color(0xB8F7F8FB)
-private val Text3 = Color(0x7AF7F8FB)
-private val Accent = Color(0xFF35D6A4)
-private val Red = Color(0xFFFF0000)
-
-private data class TvMetrics(
-    val railSlotWidth: Dp,
-    val railWidth: Dp,
-    val expandedGuideWidth: Dp,
-    val guidePanelWidth: Dp,
-    val railIconSize: Dp,
-    val railIconGlyph: Dp,
-    val screenPadding: Dp,
-    val topPadding: Dp,
-    val searchWidth: Dp,
-    val cardWidth: Dp,
-    val rowGap: Dp,
-    val cardGap: Dp,
-    val logoSize: Dp,
-    val topBrandLogo: Dp,
-    val titleText: TextUnit,
-    val cardText: TextUnit,
-    val guideText: TextUnit,
-    val brandText: TextUnit,
-)
-
-private val LocalTvMetrics = staticCompositionLocalOf {
-    TvMetrics(
-        railSlotWidth = 37.dp,
-        railWidth = 31.dp,
-        expandedGuideWidth = 160.dp,
-        guidePanelWidth = 141.dp,
-        railIconSize = 23.dp,
-        railIconGlyph = 11.dp,
-        screenPadding = 17.dp,
-        topPadding = 17.dp,
-        searchWidth = 220.dp,
-        cardWidth = 125.dp,
-        rowGap = 17.dp,
-        cardGap = 8.dp,
-        logoSize = 22.dp,
-        topBrandLogo = 15.dp,
-        titleText = 15.sp,
-        cardText = 8.sp,
-        guideText = 8.sp,
-        brandText = 10.sp,
-    )
-}
-private val LocalLogoImageLoader = staticCompositionLocalOf<ImageLoader> {
-    error("Logo image loader is not available")
-}
-
-@Composable
-private fun rememberTvMetrics(width: Dp): TvMetrics {
-    // Android TV commonly exposes 1920x1080 as 960x540 dp. These ratios map
-    // the website's measured CSS geometry back to the same physical pixels.
-    val scale = (width.value / 960f).coerceIn(0.78f, 2f)
-    return TvMetrics(
-        railSlotWidth = 37.dp * scale,
-        railWidth = 31.dp * scale,
-        expandedGuideWidth = 160.dp * scale,
-        guidePanelWidth = 141.dp * scale,
-        railIconSize = 23.dp * scale,
-        railIconGlyph = 11.dp * scale,
-        screenPadding = 17.dp * scale,
-        topPadding = 17.dp * scale,
-        searchWidth = 220.dp * scale,
-        cardWidth = 125.dp * scale,
-        rowGap = 17.dp * scale,
-        cardGap = 8.dp * scale,
-        logoSize = 22.dp * scale,
-        topBrandLogo = 15.dp * scale,
-        titleText = (15f * scale).sp,
-        cardText = (8f * scale).sp,
-        guideText = (8f * scale).sp,
-        brandText = (10f * scale).sp,
-    )
-}
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -209,22 +123,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-data class StreamSource(val label: String, val url: String)
-
-data class Channel(
-    val id: String,
-    val name: String,
-    val shortName: String,
-    val category: String,
-    val logo: String,
-    val streams: List<StreamSource>,
-)
-
-data class ChannelCategory(
-    val name: String,
-    val channels: List<Channel>,
-)
 
 private enum class GuideMode {
     Closed,
@@ -249,6 +147,7 @@ fun TrionineTvApp() {
             .build()
     }
     var activeChannel by remember { mutableStateOf<Channel?>(null) }
+    var isPlayerFullscreen by remember { mutableStateOf(false) }
     var guideMode by remember { mutableStateOf(GuideMode.Closed) }
     var selectedCategory by remember { mutableStateOf<ChannelCategory?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -262,11 +161,15 @@ fun TrionineTvApp() {
         panelFocusSeed += 1
     }
 
-    BackHandler(enabled = guideMode != GuideMode.Closed) {
-        guideMode = when (guideMode) {
-            GuideMode.Category -> GuideMode.Categories
-            GuideMode.Categories, GuideMode.Search -> GuideMode.Closed
-            GuideMode.Closed -> GuideMode.Closed
+    BackHandler(enabled = isPlayerFullscreen || guideMode != GuideMode.Closed) {
+        if (isPlayerFullscreen) {
+            isPlayerFullscreen = false
+        } else {
+            guideMode = when (guideMode) {
+                GuideMode.Category -> GuideMode.Categories
+                GuideMode.Categories, GuideMode.Search -> GuideMode.Closed
+                GuideMode.Closed -> GuideMode.Closed
+            }
         }
     }
 
@@ -274,10 +177,14 @@ fun TrionineTvApp() {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val metrics = rememberTvMetrics(maxWidth)
             CompositionLocalProvider(LocalTvMetrics provides metrics, LocalLogoImageLoader provides logoImageLoader) {
-                val guideContentInset = when (guideMode) {
-                    GuideMode.Categories -> metrics.expandedGuideWidth
-                    GuideMode.Category -> metrics.railSlotWidth + metrics.guidePanelWidth
-                    GuideMode.Closed, GuideMode.Search -> metrics.railSlotWidth
+                val guideContentInset = if (isPlayerFullscreen) {
+                    0.dp
+                } else {
+                    when (guideMode) {
+                        GuideMode.Categories -> metrics.expandedGuideWidth
+                        GuideMode.Category -> metrics.railSlotWidth + metrics.guidePanelWidth
+                        GuideMode.Closed, GuideMode.Search -> metrics.railSlotWidth
+                    }
                 }
                 Box(
                     Modifier
@@ -306,9 +213,10 @@ fun TrionineTvApp() {
                             firstCardRequester = firstHomeCardRequester,
                             onChannelSelected = {
                                 activeChannel = it
+                                isPlayerFullscreen = false
                                 searchQuery = ""
                                 selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
-                                guideMode = GuideMode.Closed
+                                guideMode = GuideMode.Category
                             },
                             modifier = Modifier
                                 .fillMaxSize()
@@ -317,9 +225,15 @@ fun TrionineTvApp() {
                     } else {
                         PlayerScreen(
                             channel = activeChannel!!,
+                            isFullscreen = isPlayerFullscreen,
+                            onFullscreenToggle = { isPlayerFullscreen = !isPlayerFullscreen },
                             onBack = {
-                                activeChannel = null
-                                guideMode = GuideMode.Closed
+                                if (isPlayerFullscreen) {
+                                    isPlayerFullscreen = false
+                                } else {
+                                    activeChannel = null
+                                    guideMode = GuideMode.Closed
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxSize()
@@ -327,7 +241,7 @@ fun TrionineTvApp() {
                         )
                     }
 
-                    TvGuide(
+                    if (!isPlayerFullscreen) TvGuide(
                         categories = categories,
                         mode = guideMode,
                         selectedCategory = selectedCategory,
@@ -337,6 +251,7 @@ fun TrionineTvApp() {
                         },
                         onHome = {
                             activeChannel = null
+                            isPlayerFullscreen = false
                             searchQuery = ""
                             guideMode = GuideMode.Closed
                             selectedCategory = null
@@ -346,6 +261,7 @@ fun TrionineTvApp() {
                         onBackToCategories = { guideMode = GuideMode.Categories },
                         onChannelSelected = {
                             activeChannel = it
+                            isPlayerFullscreen = false
                             searchQuery = ""
                             selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
                             guideMode = GuideMode.Category
@@ -361,9 +277,10 @@ fun TrionineTvApp() {
                             onClose = { guideMode = GuideMode.Closed },
                             onChannelSelected = {
                                 activeChannel = it
+                                isPlayerFullscreen = false
                                 searchQuery = ""
                                 selectedCategory = categories.firstOrNull { cat -> cat.name == it.category }
-                                guideMode = GuideMode.Closed
+                                guideMode = GuideMode.Category
                             },
                             modifier = Modifier.fillMaxSize().zIndex(30f),
                         )
@@ -1202,7 +1119,13 @@ private fun ChannelCard(
 
 @Composable
 @androidx.annotation.OptIn(UnstableApi::class)
-private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+private fun PlayerScreen(
+    channel: Channel,
+    isFullscreen: Boolean,
+    onFullscreenToggle: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     var sourceIndex by remember(channel.id) { mutableIntStateOf(0) }
     var failedSourceCount by remember(channel.id) { mutableIntStateOf(0) }
@@ -1252,29 +1175,32 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
                 }
             },
     ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { viewContext ->
-                PlayerView(viewContext).apply {
-                    this.player = player
-                    useController = false
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
-                }
-            },
-            update = { view ->
-                if (view.player !== player) view.player = player
-                view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                view.useController = false
-            },
-        )
+        key(player) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { viewContext ->
+                    PlayerView(viewContext).apply {
+                        this.player = player
+                        useController = false
+                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    }
+                },
+                update = { view ->
+                    view.player = player
+                    view.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    view.useController = false
+                },
+            )
+        }
         PlayerControls(
             channel = channel,
             sourceLabel = source.label,
             isPlaying = isPlaying,
+            isFullscreen = isFullscreen,
             onPlayPause = {
                 playbackIssue = null
                 if (isPlaying) player.pause() else player.play()
@@ -1293,6 +1219,7 @@ private fun PlayerScreen(channel: Channel, onBack: () -> Unit, modifier: Modifie
                     .clearOverridesOfType(androidx.media3.common.C.TRACK_TYPE_VIDEO)
                     .build()
             },
+            onFullscreenToggle = onFullscreenToggle,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
         playbackIssue?.let { issue ->
@@ -1316,9 +1243,11 @@ private fun PlayerControls(
     channel: Channel,
     sourceLabel: String,
     isPlaying: Boolean,
+    isFullscreen: Boolean,
     onPlayPause: () -> Unit,
     onSourceChange: () -> Unit,
     onAutoQuality: () -> Unit,
+    onFullscreenToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val metrics = LocalTvMetrics.current
@@ -1362,7 +1291,10 @@ private fun PlayerControls(
         Spacer(Modifier.weight(1f))
         PlayerControlPill(icon = Icons.Outlined.Dns, label = sourceLabel.uppercase(), onClick = onSourceChange)
         PlayerControlPill(icon = Icons.Outlined.Settings, label = "AUTO", onClick = onAutoQuality)
-        PlayerControlIcon(icon = Icons.Rounded.Fullscreen, onClick = {})
+        PlayerControlIcon(
+            icon = if (isFullscreen) Icons.Rounded.FullscreenExit else Icons.Rounded.Fullscreen,
+            onClick = onFullscreenToggle,
+        )
     }
 }
 

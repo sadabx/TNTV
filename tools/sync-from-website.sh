@@ -11,9 +11,9 @@ website_root="$(cd "$1" && pwd)"
 
 node "$project_root/tools/generate-channel-catalog.js" \
   "$website_root/js/channel-catalog.js" \
-  "$project_root/android/app/src/main/kotlin/com/tntv/tv/ChannelCatalog.kt"
+  "$project_root/app/src/main/kotlin/com/tntv/tv/ChannelCatalog.kt"
 
-rsync -a --delete "$website_root/assets/logos/" "$project_root/assets/logos/"
-cp "$website_root/assets/iptv.png" "$project_root/assets/iptv.png"
+rsync -a --delete "$website_root/assets/logos/" "$project_root/app/src/main/assets/logos/"
+cp "$website_root/assets/iptv.png" "$project_root/app/src/main/assets/iptv.png"
 
 echo "Synced Android catalogue and logos from $website_root"

@@ -28,7 +28,7 @@ Use these values as the Android equivalents of the website theme:
 | Secondary text | 72% primary | Channel and navigation labels |
 | Muted text | 48% primary | Counts and metadata |
 | Accent | `#35D6A4` | Focus border and active state |
-| Live | `#FF0000` | LIVE badges only |
+| Live | `#FF0000` | Player status and optional match cards |
 | Border | 12% white | Rail, cards, panels, controls |
 
 Use system sans/Roboto on Android TV. Titles are heavy, labels are semibold, and letter spacing remains zero. Avoid gradients as decoration; use the dark surfaces and content logos to carry the UI.
@@ -40,7 +40,8 @@ Support 720p, 1080p, and 4K without hard-coding one screen size. The Compose imp
 Baseline metrics at 960 dp width:
 
 - Rail slot: 37 dp; collapsed rail: 31 dp.
-- Expanded rail plus guide: 160 dp; guide panel: 141 dp.
+- Expanded category menu: 160 dp.
+- Open channel guide: 37 dp rail plus 141 dp channel panel.
 - Rail icon tile: 23 dp; rail icon glyph: 11 dp.
 - Screen content inset: 17 dp.
 - Search width: 220 dp.
@@ -66,7 +67,7 @@ Cards and controls must not change their layout footprint when focused. Scale ma
 
 - Replace the menu icon with Close.
 - Keep the icon rail attached to a dark guide panel inside one floating shell.
-- Show TRIONINE branding at the top. `TV` is smaller and emerald.
+- Show TRIONINE branding at the top. `TV` is smaller and blue.
 - Rows show icon, category name, channel count, and a right chevron.
 - Center/Enter opens a category. Right may move into the panel but cannot trigger the rail item itself.
 
@@ -79,9 +80,9 @@ Cards and controls must not change their layout footprint when focused. Scale ma
 
 ## 5. Home Catalogue
 
-- Search and branding occupy a restrained top row; do not create a marketing hero.
+- Start directly with the category catalogue; do not add a marketing hero or redundant top bar.
 - Each category is an unframed section with a title and horizontal `LazyRow`.
-- Channel cards use a white 16:9 logo tile, red LIVE badge, and one-line channel name below.
+- Channel cards use a white 16:9 logo tile and one-line channel name below. Do not add repetitive LIVE badges.
 - Preserve website category order and channel order.
 - Left/right moves within a row. Up/down moves to the closest column in the adjacent row.
 - Up from the first row reaches Search. Back from Home exits according to Android TV conventions.
@@ -93,7 +94,7 @@ Cards and controls must not change their layout footprint when focused. Scale ma
 - Focus the text input when the search panel opens so the Android TV keyboard can appear.
 - Filter by channel name and category, case-insensitively.
 - Results update as text changes and use the same channel-row component as category lists.
-- Selecting a result clears the query, starts playback, and associates the player guide with the channel's real category.
+- Selecting a result clears the query, starts playback, and opens the channel's real category guide.
 - A local no-results line is acceptable inside Search. Never filter or replace Home sections.
 
 ## 7. Popular Matches
@@ -110,13 +111,15 @@ Popular matches are a bonus section above Sports, never the app foundation.
 
 ## 8. Player
 
-- Playback replaces the browse surface and fills all space beside the floating rail.
+- Playback replaces the browse surface and opens the active channel's category guide by default.
+- Selecting another guide channel must replace both the player video surface and audio source immediately.
 - Do not retain the Home top bar while watching.
 - Media uses fit behavior by default; never crop live video to fill the screen.
 - Bottom controls use a translucent black strip: Play/Pause, LIVE, system volume affordance, channel title, Source, Quality, and Fullscreen/status at the far right.
 - Do not add a custom PiP button; the platform/browser behavior is sufficient and PiP is not core to TV use.
 - Source opens a compact focusable menu and highlights the active source. Switching source rebuilds playback without leaving the channel.
 - Quality defaults to Auto. Its menu should list only tracks actually reported by Media3 and allow returning to Auto.
+- Fullscreen hides the rail and channel panel, expands video to the full viewport, and changes the control to an exit-fullscreen icon. Back exits fullscreen first.
 - Hide controls after inactivity and restore them on remote input.
 - On stream failure, try the next source once, then show a compact retry/source choice while keeping Back and guide navigation functional.
 - YouTube and third-party embed URLs require a dedicated provider path; do not pass a webpage URL directly to ExoPlayer.
@@ -124,14 +127,14 @@ Popular matches are a bonus section above Sports, never the app foundation.
 ## 9. Branding
 
 - Product name is `TRIONINE TV`, never `T9TV` or `TNTV` in user-facing UI.
-- `TRIONINE` is primary white text; `TV` is smaller and emerald.
-- Use the shared `assets/iptv.png` mark until a dedicated Android adaptive icon and 320x180 TV banner are supplied.
+- `TRIONINE` is primary white text; `TV` is smaller and blue.
+- Use `app/src/main/assets/iptv.png` until a dedicated Android adaptive icon and 320x180 TV banner are supplied.
 - Do not show vertical rail branding when a full top/expanded-guide brand is visible.
 
 ## 10. Data and Logos
 
 - `js/channel-catalog.js` in [`sadabx/iptv`](https://github.com/sadabx/iptv) is the only catalogue source of truth.
-- Android local logo paths remain `assets/logos/<file>` and are loaded through `file:///android_asset/logos/<file>`.
+- Catalogue logo values remain `assets/logos/<file>`. Files are packaged from `app/src/main/assets/logos/` and loaded through `file:///android_asset/logos/<file>`.
 - Coil SVG support is required because the catalogue contains SVG logos.
 - Keep only logos referenced by active channels. Remote logos may be used only when no maintained local asset exists.
 - Trim accidental whitespace from stream URLs during generation.
@@ -146,7 +149,7 @@ Verify these paths with a keyboard and a real/emulated TV remote:
 2. Rail menu -> categories -> category -> channel -> playback.
 3. Collapsed selected category -> Right moves toward content and does not reopen the category.
 4. Search -> type -> result -> playback -> Home; Home shows the full unfiltered catalogue.
-5. Player -> source -> quality -> controls -> guide -> channel switch -> Back.
+5. Player with category guide -> channel switch -> source -> quality -> fullscreen -> Back.
 6. Broken first source -> fallback/retry remains usable.
 7. Optional match API empty, slow, and failed -> Sports remains first and fully usable.
 8. No card, focus ring, menu, or player control clips at 1280x720, 1920x1080, or 3840x2160.
@@ -158,6 +161,6 @@ Verify these paths with a keyboard and a real/emulated TV remote:
 - No user-facing `T9TV`/`TNTV` branding remains.
 - D-pad movement never performs an action except where the control explicitly defines directional navigation.
 - Search is functional and cannot persistently filter Home.
-- Player supports source selection, Auto quality reset, fit rendering, and no custom PiP.
+- Player supports reliable channel switching, source selection, Auto quality reset, fit rendering, working fullscreen, and no custom PiP.
 - Popular matches fail silently and cannot delay channels.
 - `./gradlew :app:assembleDebug` succeeds.

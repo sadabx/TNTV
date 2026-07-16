@@ -31,11 +31,6 @@ android {
         compose = true
     }
 
-    sourceSets {
-        getByName("main") {
-            assets.srcDir("../../assets")
-        }
-    }
 }
 
 dependencies {

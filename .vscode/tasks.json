@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Android TV: Build Debug APK",
+            "type": "shell",
+            "command": "./gradlew :app:assembleDebug",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "JAVA_HOME": "/opt/android-studio/jbr"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gradle"]
+        },
+        {
+            "label": "Android TV: Lint",
+            "type": "shell",
+            "command": "./gradlew :app:lintDebug",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "JAVA_HOME": "/opt/android-studio/jbr"
+                }
+            },
+            "problemMatcher": ["$gradle"]
+        },
+        {
+            "label": "Android TV: Install Debug APK",
+            "type": "shell",
+            "command": "adb install -r app/build/outputs/apk/debug/app-debug.apk",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "Android TV: Build Debug APK",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,4 +1,4 @@
-# Miscellaneous
+# Editors and operating systems
 *.class
 *.log
 *.pyc
@@ -7,7 +7,6 @@
 .atom/
 .history
 .svn/
-migrate_working_dir/
 
 # IntelliJ related
 *.iml
@@ -15,19 +14,18 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Android related
+# Android and Gradle output
 .gradle/
+.kotlin/
 build/
-android/build/
-android/app/build/
-/android/app/debug
-/android/app/profile
-/android/app/release
+local.properties
+captures/
+.cxx/
 
-# Graphify
+# Signing material
+key.properties
+*.keystore
+*.jks
+
+# Generated architecture reports
 graphify-out/
