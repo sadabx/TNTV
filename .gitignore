@@ -1,10 +1,12 @@
 # Editors and operating systems
 *.class
 *.log
+*.hprof
 *.pyc
 *.swp
 .DS_Store
 .atom/
+.fleet/
 .history
 .svn/
 
@@ -13,6 +15,7 @@
 *.ipr
 *.iws
 .idea/
+out/
 
 # Android and Gradle output
 .gradle/
@@ -21,11 +24,15 @@ build/
 local.properties
 captures/
 .cxx/
+.externalNativeBuild/
+.navigation/
 
 # Signing material
 key.properties
+secrets.properties
 *.keystore
 *.jks
+*.p12
 
 # Generated architecture reports
 graphify-out/
