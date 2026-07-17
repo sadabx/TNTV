@@ -57,6 +57,9 @@ import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -153,7 +156,28 @@ fun TrionineTvApp() {
     var searchQuery by remember { mutableStateOf("") }
     var panelFocusSeed by remember { mutableIntStateOf(0) }
     val firstHomeCardRequester = remember { FocusRequester() }
-    val categories = channelCategories
+    val appScope = rememberCoroutineScope()
+    var categories by remember { mutableStateOf(channelCategories) }
+    var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
+    var updateBusy by remember { mutableStateOf(false) }
+    var updateStatus by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        val remoteCategories = loadRemoteChannelCatalog() ?: return@LaunchedEffect
+        categories = remoteCategories
+        selectedCategory = selectedCategory?.let { selected ->
+            remoteCategories.firstOrNull { it.name == selected.name } ?: selected
+        }
+        activeChannel = activeChannel?.let { active ->
+            remoteCategories
+                .flatMap { it.channels }
+                .firstOrNull { it.id == active.id } ?: active
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        updateInfo = checkForAppUpdate()
+    }
 
     fun openCategory(category: ChannelCategory) {
         selectedCategory = category
@@ -171,6 +195,11 @@ fun TrionineTvApp() {
                 GuideMode.Closed -> GuideMode.Closed
             }
         }
+    }
+
+    BackHandler(enabled = updateInfo != null && !updateBusy) {
+        updateInfo = null
+        updateStatus = null
     }
 
     Surface(color = Bg, modifier = Modifier.fillMaxSize()) {
@@ -284,6 +313,103 @@ fun TrionineTvApp() {
                             },
                             modifier = Modifier.fillMaxSize().zIndex(30f),
                         )
+                    }
+
+                    updateInfo?.let { info ->
+                        AppUpdateDialog(
+                            info = info,
+                            busy = updateBusy,
+                            status = updateStatus,
+                            onDismiss = {
+                                updateInfo = null
+                                updateStatus = null
+                            },
+                            onUpdate = {
+                                if (!updateBusy) {
+                                    appScope.launch {
+                                        updateBusy = true
+                                        updateStatus = "Downloading update"
+                                        runCatching {
+                                            val apk = downloadUpdateApk(context, info)
+                                            updateStatus = "Opening installer"
+                                            installUpdateApk(context, apk)
+                                        }.onSuccess {
+                                            updateInfo = null
+                                            updateStatus = null
+                                            updateBusy = false
+                                        }.onFailure {
+                                            updateStatus = "Update failed. Try again later."
+                                            updateBusy = false
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize().zIndex(50f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppUpdateDialog(
+    info: AppUpdateInfo,
+    busy: Boolean,
+    status: String?,
+    onDismiss: () -> Unit,
+    onUpdate: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val metrics = LocalTvMetrics.current
+    Box(
+        modifier
+            .background(Color(0xB8000000))
+            .padding(metrics.topPadding),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            color = ExpandedMenuBg,
+            shape = RoundedCornerShape(26.dp),
+            modifier = Modifier
+                .width(420.dp)
+                .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(26.dp)),
+        ) {
+            Column(
+                modifier = Modifier.padding(26.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text("Update available", color = Text, fontWeight = FontWeight.Black, fontSize = metrics.titleText)
+                Text(
+                    "TNTV ${info.versionName} is ready.",
+                    color = Text2,
+                    fontSize = metrics.guideText,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                if (info.notes.isNotBlank()) {
+                    Text(info.notes, color = Text3, fontSize = metrics.guideText * 0.86f)
+                }
+                status?.let {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (busy) CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Accent, strokeWidth = 2.dp)
+                        Text(it, color = Text2, fontSize = metrics.guideText * 0.86f)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        enabled = !busy,
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Text2),
+                    ) {
+                        Text("Later")
+                    }
+                    Button(
+                        enabled = !busy,
+                        onClick = onUpdate,
+                        colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF06110D)),
+                    ) {
+                        Text("Update", fontWeight = FontWeight.Black)
                     }
                 }
             }

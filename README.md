@@ -74,25 +74,32 @@ The checked-in tasks also provide separate **Build Debug APK** and **Lint** comm
 
 - Website repository: [`sadabx/iptv`](https://github.com/sadabx/iptv)
 - Authoritative catalogue file: `js/channel-catalog.js`
+- Stable app feed: `https://sadabx.github.io/TNTV/data/channels.json`
+- Stable update feed: `https://sadabx.github.io/TNTV/data/app-update.json`
 - Android generated snapshot: `app/src/main/kotlin/com/tntv/tv/ChannelCatalog.kt`
 - Packaged logo assets: `app/src/main/assets/logos/`
 
 ## Catalogue Sync
 
-The website file `js/channel-catalog.js` from [`sadabx/iptv`](https://github.com/sadabx/iptv) is authoritative. Android must preserve category order, channel order, IDs, names, short names, logo paths, source labels, and stream URLs. The current Android snapshot contains 94 channels across 9 categories.
+The website file `js/channel-catalog.js` from [`sadabx/iptv`](https://github.com/sadabx/iptv) is authoritative. Android also loads `https://sadabx.github.io/TNTV/data/channels.json` at startup so stream fixes can ship from the TNTV GitHub Pages feed without a new APK. The generated Kotlin snapshot remains the instant/offline fallback. Android must preserve category order, channel order, IDs, names, short names, logo paths, source labels, and stream URLs. The current Android snapshot contains 94 channels across 9 categories.
 
 When the website catalogue changes:
 
 1. Regenerate `ChannelCatalog.kt` from `CHANNELS_DATA`; do not maintain a second hand-edited list.
-2. Replace `app/src/main/assets/logos/` with the website's active logo set.
-3. Confirm every local `logo` path resolves and no unused logo remains.
-4. Build the debug APK and test focus traversal at 720p, 1080p, and 4K.
+2. Publish the mirrored JSON to `data/channels.json` on the TNTV GitHub Pages site.
+3. Replace `app/src/main/assets/logos/` with the website's active logo set.
+4. Confirm every local `logo` path resolves and no unused logo remains.
+5. Build the debug APK and test focus traversal at 720p, 1080p, and 4K.
 
 From this repository root, the checked-in sync utility performs steps 1-3:
 
 ```bash
 ./tools/sync-from-website.sh /absolute/path/to/sadabx/iptv
 ```
+
+## App Updates
+
+The app checks `https://sadabx.github.io/TNTV/data/app-update.json` at startup. If the remote `versionCode` is greater than the installed APK's `BuildConfig.VERSION_CODE`, TNTV shows a compact update prompt, downloads the APK, verifies `sha256` when present, and opens Android's package installer. Installation still requires user approval because this is a normal sideloaded app.
 
 ## Product Rule
 

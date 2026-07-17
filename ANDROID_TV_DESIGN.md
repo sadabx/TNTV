@@ -133,7 +133,9 @@ Popular matches are a bonus section above Sports, never the app foundation.
 
 ## 10. Data and Logos
 
-- `js/channel-catalog.js` in [`sadabx/iptv`](https://github.com/sadabx/iptv) is the only catalogue source of truth.
+- `js/channel-catalog.js` in [`sadabx/iptv`](https://github.com/sadabx/iptv) is the edit-time catalogue source of truth.
+- `https://sadabx.github.io/TNTV/data/channels.json` is the stable runtime update feed for Android; keep the generated Kotlin snapshot as the instant/offline fallback.
+- `https://sadabx.github.io/TNTV/data/app-update.json` is the stable APK update feed; updates are optional prompts and must never block catalog browsing or playback.
 - Catalogue logo values remain `assets/logos/<file>`. Files are packaged from `app/src/main/assets/logos/` and loaded through `file:///android_asset/logos/<file>`.
 - Coil SVG support is required because the catalogue contains SVG logos.
 - Keep only logos referenced by active channels. Remote logos may be used only when no maintained local asset exists.
