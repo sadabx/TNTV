@@ -1,7 +1,7 @@
 {
-  "versionCode": 3,
-  "versionName": "1.1.0",
-  "apkUrl": "https://github.com/sadabx/TNTV/releases/download/v1.1.0/TNTV-v1.1.0.apk",
-  "sha256": "8e82999fc95886e48412ce66e0641a566ebf12dde87055d9b2a9c7bf5449a809",
-  "notes": "Current public release."
+  "versionCode": 4,
+  "versionName": "1.2.0",
+  "apkUrl": "https://github.com/sadabx/TNTV/releases/download/v1.2.0/TNTV-v1.2.0.apk",
+  "sha256": "a0807587ab7c7818b82e6f927104122746342d8ab9ffa4aaca8b8ebe2c95e706",
+  "notes": "Updated to version 1.2.0."
 }
